@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Python Chat App{% endblock %}</title>
+    <style>
+        :root {
+            --primary-color: #4a90e2;
+            --primary-light: #5da8ff;
+            --primary-dark: #3a7cbd;
+            --secondary-color: #e8f1f8;
+            --text-color: #2c3e50;
+            --bg-color: #f0f8ff;
+            --message-bg: #e1eeff;
+            --system-message-color: #8fa4b8;
+        }
+
+        body {
+            font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            background-color: white;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        .header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            margin: -20px -20px 20px;
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--secondary-color);
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        .form-group .error {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 5px;
+        }
+
+        .btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: var(--primary-dark);
+        }
+
+        .nav {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .nav a {
+            color: var(--primary-color);
+            text-decoration: none;
+            padding: 5px 10px;
+            transition: color 0.3s ease;
+        }
+
+        .nav a:hover {
+            color: var(--primary-dark);
+        }
+
+        .flashes {
+            list-style: none;
+            padding: 0;
+            margin: 0 0 20px;
+        }
+
+        .flashes li {
+            padding: 10px 15px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+        }
+
+        .flashes .success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .flashes .error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+    </style>
+    {% block styles %}{% endblock %}
+</head>
+<body>
+    <div class="container">
+        <div class="header">Python Chat</div>
+        <div class="nav">
+            <div>
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('index') }}">Chat</a>
+                {% else %}
+                <a href="{{ url_for('index') }}">Home</a>
+                {% endif %}
+            </div>
+            <div>
+                {% if current_user.is_authenticated %}
+                <span>{{ current_user.username }}</span> | 
+                <a href="{{ url_for('logout') }}">Logout</a>
+                {% else %}
+                <a href="{{ url_for('login') }}">Login</a> | 
+                <a href="{{ url_for('register') }}">Register</a>
+                {% endif %}
+            </div>
+        </div>
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <ul class="flashes">
+                {% for category, message in messages %}
+                <li class="{{ category }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        {% endwith %}
+        
+        {% block content %}{% endblock %}
+    </div>
+    
+    {% block scripts %}{% endblock %}
+</body>
+</html>
