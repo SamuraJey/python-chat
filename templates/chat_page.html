@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Chat - {{ chat.name }}{% endblock %}
+
+{% block header %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.5/socket.io.js"
+    integrity="sha512-luMnTJZ7oEchNDZAtQhgjomP1eZefnl82ruTH/3Oj/Yu5qYtwL7+dVRccACS/Snp1lFXq188XFipHKYE75IaQQ=="
+    crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="header">Python Chat</div>
+    <div class="nav">
+        <a href="{{ url_for('index') }}">Chat</a>
+        <span>{{ current_user.username }}</span> |
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+    <h2>{{ chat.name }}</h2>
+    <div class="chat-container">
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input">
+            <input type="text" id="message-input" placeholder="Type your message..." />
+            <button id="send-button">Send</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
