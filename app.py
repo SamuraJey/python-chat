@@ -42,7 +42,8 @@ def load_user(user_id):
         return None
 
 
-# TODO из-за уникальной соли хешей каждого запуска бека. Пароли соханёные в бд становятся невалидыми.
+# TODO из-за уникальной соли хешей каждого запуска бека. Пароли соханёные в бд становятся невалидыми. 
+# уже не так уверен так ли это
 @app.route("/")
 def index():
     logger.info(f"Index route accessed. Authenticated: {current_user.is_authenticated}")
