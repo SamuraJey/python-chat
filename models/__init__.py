@@ -1,1 +1,3 @@
-from .user import db, User
+from .user import User, db
+
+__all__ = ["db", "User"]
