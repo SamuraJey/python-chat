@@ -1,8 +1,7 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from flask_login import UserMixin
 from werkzeug.security import check_password_hash, generate_password_hash
 from . import BaseModel, db
-
 
 
 class User(UserMixin, BaseModel):
@@ -13,7 +12,7 @@ class User(UserMixin, BaseModel):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(64), unique=True, nullable=False)
     password_hash = db.Column(db.String(256), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=datetime.now(timezone.utc))
 
     def set_password(self, password):
         """Hash and set the user password."""
