@@ -1,4 +1,3 @@
-# Create the db instance to be imported by other modules
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
@@ -11,9 +10,3 @@ if TYPE_CHECKING:
     BaseModel = Model
 else:
     BaseModel = db.Model
-
-from .chat import Chat
-from .chat_member import ChatMember
-from .user import User
-
-__all__ = ["db", "User", "Chat", "ChatMember"]

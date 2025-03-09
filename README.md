@@ -41,5 +41,5 @@ docker compose up -d
 7. Run the app:
 
 ```bash
-python app.py
+python run.py
 ```

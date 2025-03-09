@@ -3,7 +3,8 @@
 {% block title %}Chat - {{ chat.name }}{% endblock %}
 
 {% block header %}
-<script type="text/javascript" src="{{ url_for('static', filename='js/socket_io.js') }}"></script>
+<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+
 {% endblock %}
 
 {% block content %}
@@ -11,9 +12,9 @@
 <div class="container">
     <div class="header">Python Chat</div>
     <div class="nav">
-        <a href="{{ url_for('index') }}">Chat</a>
+        <a href="{{ url_for('index.index') }}">Chat</a>
         <span>{{ current_user.username }}</span> |
-        <a href="{{ url_for('logout') }}">Logout</a>
+        <a href="{{ url_for('auth.logout') }}">Logout</a>
     </div>
     <h2>{{ chat.name }}</h2>
     <div class="chat-container">
