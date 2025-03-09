@@ -1,9 +1,11 @@
 import logging
-from models import User, Chat, ChatMember
+
+from models import Chat, ChatMember, User
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
+
 
 def initialize_db(app, db):
     with app.app_context():

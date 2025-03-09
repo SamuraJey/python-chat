@@ -5,10 +5,9 @@ from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_login import LoginManager, current_user, login_user, logout_user
 from flask_socketio import SocketIO, emit
 
+import db_init
 from forms import LoginForm, RegistrationForm
-from models import User, Chat, ChatMember, db
-
-import db_init 
+from models import Chat, ChatMember, User, db
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -25,7 +24,7 @@ db.init_app(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
-# Create tables and init them with data 
+# Create tables and init them with data
 db_init.initialize_db(app, db)
 # Store connected users. Key is socket id, value is username and avatarUrl
 users = {}
@@ -42,7 +41,7 @@ def load_user(user_id):
         return None
 
 
-# TODO из-за уникальной соли хешей каждого запуска бека. Пароли соханёные в бд становятся невалидыми. 
+# TODO из-за уникальной соли хешей каждого запуска бека. Пароли соханёные в бд становятся невалидыми.
 # уже не так уверен так ли это
 @app.route("/")
 def index():
@@ -122,10 +121,12 @@ def logout():
     logout_user()
     return redirect(url_for("login"))
 
+
 @app.route("/chat/<int:chat_id>")
 def chat_page(chat_id):
     chat = Chat.query.get_or_404(chat_id)
     return render_template("chat_page.html", chat=chat)
+
 
 # Socket.IO event handlers (for comunication at /chat page)
 @socketio.on("connect")
@@ -152,13 +153,13 @@ def handle_disconnect():
         emit("user_left", {"username": user["username"]}, broadcast=True)
 
 
-@socketio.on("send_message")    
+@socketio.on("send_message")
 def handle_message(data):
     user = users.get(request.sid)
     if user:
         logger.debug(f"Message from {user['username']}: {data.get('message', '')[:20]}...")
         try:
-            #avatar = user.get("avatar", "default-avatar")
+            # avatar = user.get("avatar", "default-avatar")
             emit(
                 "new_message",
                 {"username": user["username"], "message": data["message"]},
