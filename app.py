@@ -5,8 +5,9 @@ from flask import Flask, flash, redirect, render_template, request, url_for
 from flask_login import LoginManager, current_user, login_user, logout_user
 from flask_socketio import SocketIO, emit
 
+import db_init
 from forms import LoginForm, RegistrationForm
-from models import User, db
+from models import Chat, ChatMember, User, db
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -23,14 +24,8 @@ db.init_app(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
 
-# Create tables
-with app.app_context():
-    try:
-        db.create_all()
-        logger.info("Database tables created successfully")
-    except Exception as e:
-        logger.error(f"Error creating database tables: {e}")
-
+# Create tables and init them with data
+db_init.initialize_db(app, db)
 # Store connected users. Key is socket id, value is username and avatarUrl
 users = {}
 
@@ -46,12 +41,14 @@ def load_user(user_id):
         return None
 
 
+# TODO из-за уникальной соли хешей каждого запуска бека. Пароли соханёные в бд становятся невалидыми.
+# уже не так уверен так ли это
 @app.route("/")
 def index():
-    print("Index route accessed")
     logger.info(f"Index route accessed. Authenticated: {current_user.is_authenticated}")
     if current_user.is_authenticated:
-        return render_template("index.html")
+        user_chats = Chat.query.join(ChatMember).filter(ChatMember.user_id == current_user.id).all()
+        return render_template("index.html", chats=user_chats)
     return redirect(url_for("login"))
 
 
@@ -125,7 +122,13 @@ def logout():
     return redirect(url_for("login"))
 
 
-# Socket.IO event handlers
+@app.route("/chat/<int:chat_id>")
+def chat_page(chat_id):
+    chat = Chat.query.get_or_404(chat_id)
+    return render_template("chat_page.html", chat=chat)
+
+
+# Socket.IO event handlers (for comunication at /chat page)
 @socketio.on("connect")
 def handle_connect():
     logger.debug(f"Socket connection attempt. Authenticated: {current_user.is_authenticated}")
@@ -156,10 +159,10 @@ def handle_message(data):
     if user:
         logger.debug(f"Message from {user['username']}: {data.get('message', '')[:20]}...")
         try:
-            avatar = user.get("avatar", "default-avatar")
+            # avatar = user.get("avatar", "default-avatar")
             emit(
                 "new_message",
-                {"username": user["username"], "avatar": avatar, "message": data["message"]},
+                {"username": user["username"], "message": data["message"]},
                 broadcast=True,
             )
         except Exception as e:

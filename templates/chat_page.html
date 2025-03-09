@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %}Chat - {{ chat.name }}{% endblock %}
+
+{% block header %}
+<script type="text/javascript" src="{{ url_for('static', filename='js/socket_io.js') }}"></script>
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+    <div class="header">Python Chat</div>
+    <div class="nav">
+        <a href="{{ url_for('index') }}">Chat</a>
+        <span>{{ current_user.username }}</span> |
+        <a href="{{ url_for('logout') }}">Logout</a>
+    </div>
+    <h2>{{ chat.name }}</h2>
+    <div class="chat-container">
+        <div class="chat-messages" id="chat-messages"></div>
+        <div class="chat-input">
+            <input type="text" id="message-input" placeholder="Type your message..." />
+            <button id="send-button">Send</button>
+        </div>
+    </div>
+</div>
+<script type="text/javascript" src="{{ url_for('static', filename='js/web_socket.js') }}"></script>
+{% endblock %}
