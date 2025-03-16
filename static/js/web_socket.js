@@ -12,27 +12,22 @@ const chatId = parseInt(pathParts[pathParts.length - 1], 10); // Ensure it's a n
 console.log(chatId);
 function loadPreviousMessages(chatId) {
     fetch(`/api/messages/${chatId}`)
-      .then(response => response.json())
-      .then(data => {
-        data.messages.forEach(msg => {
-          addMessage(msg.content, "user", msg.username);
-        });
-      })
-      .catch(error => console.error('Error loading messages:', error));
-  }
-  
-//   // Call this after connection is established
-//   socket.on('connect', function() {
-//     console.log('Joining chat room:', chatId);
-//     socket.emit('join', { chat_id: chatId });
-//     loadPreviousMessages(chatId);
-//   });
+        .then(response => response.json())
+        .then(data => {
+            data.messages.forEach(msg => {
+                addMessage(msg.content, "user", msg.username);
+            });
+        })
+        .catch(error => console.error('Error loading messages:', error));
+}
+
 
 let currentUsername = "";
+const displayedMessages = new Set();
 
 let connectionEstablished = false;
 
-socket.on('connect', function() {
+socket.on('connect', function () {
     console.log('Socket connected successfully');
     connectionEstablished = true;
     joinChatRoom();
@@ -40,54 +35,16 @@ socket.on('connect', function() {
 
 function joinChatRoom() {
     console.log('Joining chat room:', chatId);
+    // Join needs to happen before any messages can be received
     socket.emit('join', { chat_id: chatId });
-    
-    // Wait a short time to ensure the join happens before loading messages
-    setTimeout(() => {
+
+    // Add this debug line to confirm joining worked
+    socket.on('joined_chat', (data) => {
+        console.log('Successfully joined chat room:', data.chat_id);
         loadPreviousMessages(chatId);
-    }, 300);
+    });
 }
 
-// Make sure messages are displayed correctly
-function addMessage(message, type, username = "", avatar = "") {
-    console.log(`Adding message: "${message}" from ${username}, type: ${type}`);
-    
-    // Create message element
-    const messageElement = document.createElement("div");
-    messageElement.className = "message";
-
-    if (type === "user") {
-        const isSentMessage = username === currentUsername;
-        if (isSentMessage) {
-            messageElement.classList.add("sent");
-        }
-
-        const contentDiv = document.createElement("div");
-        contentDiv.className = "message-content";
-
-        const usernameDiv = document.createElement("div");
-        usernameDiv.className = "message-username";
-        usernameDiv.textContent = username;
-        contentDiv.appendChild(usernameDiv);
-
-        const messageText = document.createElement("div");
-        messageText.textContent = message;
-        contentDiv.appendChild(messageText);
-
-        messageElement.appendChild(contentDiv);
-    } else {
-        messageElement.className = "system-message";
-        messageElement.textContent = message;
-    }
-    
-    chatMessages.appendChild(messageElement);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-}
-
-// socket.on("set_username", (data) => {
-//     currentUsername = data.username;
-//     currentUsernameSpan.textContent = `Your username: ${currentUsername}`;
-// });
 
 socket.on("user_joined", (data) => {
     addMessage(`${data.username} joined the chat`, "system");
@@ -98,7 +55,18 @@ socket.on("user_left", (data) => {
 });
 
 socket.on("receive_message", (data) => {
-    addMessage(data.message, "user", data.username, data.avatar);
+    console.log("Received message:", data);
+
+    // Create a unique identifier for this message
+    const messageId = data.message_id || `${data.timestamp}-${data.username}-${data.message.substring(0, 10)}`;
+
+    // Check if we've already displayed this message
+    if (!displayedMessages.has(messageId)) {
+        displayedMessages.add(messageId);
+        addMessage(data.message, "user", data.username);
+    } else {
+        console.log("Skipping duplicate message:", messageId);
+    }
 });
 
 socket.on("username_updated", (data) => {
@@ -114,7 +82,7 @@ messageInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") sendMessage();
 });
 
-updateUsernameButton.addEventListener("click", updateUsername);
+
 
 function sendMessage() {
     const message = messageInput.value.trim();
@@ -132,7 +100,7 @@ function updateUsername() {
     }
 }
 
-function addMessage(message, type, username = "", avatar = "") {
+function addMessage(message, type, username = "",) {
     const messageElement = document.createElement("div");
     messageElement.className = "message";
 

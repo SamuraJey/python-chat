@@ -53,12 +53,19 @@ def init_socketio(socketio):
             return
 
         chat_id = data.get("chat_id")
+        if not chat_id:
+            current_app.logger.error(f"No chat_id provided for message from {user['username']}")
+            emit("error", {"message": "No chat room selected"})
+            return
+
         message = data.get("message", "")
 
-        current_app.logger.debug(f"Message in chat {chat_id} from {user['username']}: {message[:20]}...")
+        # For debug - log what room the user is in
+        user_room = users[request.sid].get("chat_id")
+        current_app.logger.debug(f"Message in chat {chat_id} from {user['username']} (currently in room {user_room}): {message[:20]}...")
 
         try:
-            # You can save the message to database here if needed
+            # Save the message to database
             message_obj = ChatMessage(
                 user_id=user["user_id"],
                 chat_id=chat_id,
@@ -67,6 +74,11 @@ def init_socketio(socketio):
             db.session.add(message_obj)
             db.session.commit()
 
+            # Convert chat_id to string for room name consistency
+            room_name = str(chat_id)
+
+            # Broadcast to the right room
+            current_app.logger.debug(f"Emitting message to room {room_name}")
             emit(
                 "receive_message",
                 {
@@ -74,12 +86,15 @@ def init_socketio(socketio):
                     "user_id": user["user_id"],
                     "message": message,
                     "timestamp": int(time.time() * 1000),
+                    "message_id": message_obj.id,  # Add message ID to help with deduplication
                 },
-                room=str(chat_id),  # Convert to string if it's an integer
-                broadcast=True,
+                room=room_name,
+                broadcast=True
             )
+            current_app.logger.debug(f"Message broadcast completed to room {room_name}")
         except Exception as e:
             current_app.logger.error(f"Error sending message: {e}")
+            db.session.rollback()
             emit("error", {"message": "Failed to send message"})
 
     @socketio.on("join")
@@ -87,6 +102,7 @@ def init_socketio(socketio):
         """Handle user joining a specific chat room"""
         user = users.get(request.sid)
         if not user:
+            current_app.logger.warning(f"Join attempt from unknown socket ID {request.sid}")
             return
 
         chat_id = data.get("chat_id")
@@ -97,18 +113,23 @@ def init_socketio(socketio):
         # Store chat ID in user data
         users[request.sid]["chat_id"] = chat_id
 
-        # Join the room
-        join_room(chat_id)
+        # Convert chat_id to string for room name
+        room_name = str(chat_id)
 
-        current_app.logger.info(f"User {user['username']} joined chat {chat_id}")
+        # Join the room
+        join_room(room_name)
+
+        current_app.logger.info(f"User {user['username']} joined chat {chat_id}, room: {room_name}")
+
+        # Confirm joining to the client
+        emit("joined_chat", {"chat_id": chat_id, "status": "success"})
 
         # Notify others in the room
         emit(
             "user_joined_chat",
             {"username": user["username"], "chat_id": chat_id},
-            room=chat_id,
-            broadcast=True,
-            include_self=False,
+            room=room_name,
+            include_self=False
         )
 
     @socketio.on("leave")
