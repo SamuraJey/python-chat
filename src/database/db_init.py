@@ -27,19 +27,19 @@ def initialize_db(app, db):
 
             # Create sample users
             user1 = User(username="ali")
-            user1.set_password("aaaaaaaa")
+            user1.set_password("aaa")
             user2 = User(username="bob")
-            user2.set_password("bbbbbbbb")
+            user2.set_password("bbb")
             user3 = User(username="caly")
-            user3.set_password("cccccccc")
+            user3.set_password("ccc")
 
             db.session.add_all([user1, user2, user3])
             db.session.commit()
             logger.info("Created sample users")
 
             # Create sample chats
-            chat1 = Chat(chat_name="General Chat")
-            chat2 = Chat(chat_name="Project Discussion")
+            chat1 = Chat(name="General Chat")
+            chat2 = Chat(name="Project Discussion")
 
             db.session.add_all([chat1, chat2])
             db.session.commit()

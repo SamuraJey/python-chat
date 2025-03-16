@@ -10,7 +10,7 @@ class Chat(db.Model):
     __tablename__ = "chats"
 
     id = db.Column(db.Integer, primary_key=True)
-    chat_name = db.Column(db.String(127))
+    name = db.Column(db.String(127))
     is_group = db.Column(db.Boolean, default=False)
     created_at = db.Column(db.DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
@@ -43,4 +43,4 @@ class Chat(db.Model):
         return [member.user for member in self.members if member.is_moderator]
 
     def __repr__(self):
-        return f"<Chat {self.chat_name} ({'group' if self.is_group else 'direct'})>"
+        return f"<Chat {self.name} ({'group' if self.is_group else 'direct'})>"
