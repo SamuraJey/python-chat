@@ -1,7 +1,9 @@
+from typing import TYPE_CHECKING
+
 from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
-from typing import TYPE_CHECKING
+
 
 # Type handling for mypy
 if TYPE_CHECKING:

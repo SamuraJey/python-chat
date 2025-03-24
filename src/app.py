@@ -43,15 +43,12 @@ def create_app(test_config=None) -> Flask:
             app.logger.error(f"Error loading user {user_id}: {e}")
             return None
 
-    # Setup logger
-    logger = setup_logger(app)
+    setup_logger(app)
 
-    # Initialize database
     with app.app_context():
         db.create_all()
         app.logger.info("Database tables created successfully")
 
-    # Register blueprints
     from src.routes import auth, chats, index
 
     app.register_blueprint(auth.bp)

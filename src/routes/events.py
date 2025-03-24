@@ -89,7 +89,7 @@ def init_socketio(socketio):
                     "message_id": message_obj.id,  # Add message ID to help with deduplication
                 },
                 room=room_name,
-                broadcast=True
+                broadcast=True,
             )
             current_app.logger.debug(f"Message broadcast completed to room {room_name}")
         except Exception as e:
@@ -125,12 +125,7 @@ def init_socketio(socketio):
         emit("joined_chat", {"chat_id": chat_id, "status": "success"})
 
         # Notify others in the room
-        emit(
-            "user_joined_chat",
-            {"username": user["username"], "chat_id": chat_id},
-            room=room_name,
-            include_self=False
-        )
+        emit("user_joined_chat", {"username": user["username"], "chat_id": chat_id}, room=room_name, include_self=False)
 
     @socketio.on("leave")
     def handle_leave(data):

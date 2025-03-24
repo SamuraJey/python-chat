@@ -203,9 +203,7 @@ def test_login_success(client):
             mock_query.filter_by.return_value.first.return_value = mock_user
 
             with patch("src.routes.auth.login_user") as mock_login:
-                response = client.post(
-                    "/login", data={"username": "testuser", "password": "password123", "remember": True}
-                )
+                response = client.post("/login", data={"username": "testuser", "password": "password123", "remember": True})
 
                 # Check that login_user was called
                 mock_login.assert_called_once_with(mock_user, remember=True)

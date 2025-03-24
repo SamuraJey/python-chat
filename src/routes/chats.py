@@ -33,13 +33,7 @@ def get_chat_messages(chat_id):
     """Get previous messages for a chat"""
     try:
         # Get messages and include username from User
-        messages = (
-            db.session.query(ChatMessage, User.username)
-            .join(User, ChatMessage.user_id == User.id)
-            .filter(ChatMessage.chat_id == chat_id)
-            .order_by(ChatMessage.sent_at)
-            .all()
-        )
+        messages = db.session.query(ChatMessage, User.username).join(User, ChatMessage.user_id == User.id).filter(ChatMessage.chat_id == chat_id).order_by(ChatMessage.sent_at).all()
 
         # Format messages for JSON response
         formatted_messages = [
