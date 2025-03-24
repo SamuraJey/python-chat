@@ -1,0 +1,56 @@
+@startuml Component Diagram
+
+package "Фронтенд" {
+  [HTML Templates] as Templates
+  [CSS Стили] as CSS
+  [JavaScript] as JS
+  [Socket.IO клиент] as SocketClient
+}
+
+package "Фласк бэкенд" {
+  [app.py] as App
+  [auth.py] as Auth
+  [index.py] as Index
+  [chats.py] as Chats
+  [events.py] as Events
+}
+
+package "Модели данных" {
+  [User] as UserModel
+  [Chat] as ChatModel
+  [ChatMember] as MemberModel
+  [ChatMessage] as MessageModel
+}
+
+database "PostgreSQL" {
+  [users]
+  [chats]
+  [chat_members]
+  [messages]
+}
+
+cloud "Socket.IO" {
+  [Сервер Socket.IO] as SocketServer
+}
+
+Templates --> App : запросы страниц
+JS --> SocketClient : отправка событий
+SocketClient --> SocketServer : WebSocket соединение
+SocketServer --> Events : обработка событий
+
+App --> Auth : авторизация пользователей
+App --> Index : главная страница 
+App --> Chats : работа с чатами
+
+Auth --> UserModel : создание/валидация пользователей
+Index --> ChatModel : получение списка чатов
+Chats --> ChatModel : получение данных чата
+Chats --> MessageModel : получение сообщений
+Events --> MessageModel : сохранение сообщений
+
+UserModel --> users : ORM
+ChatModel --> chats : ORM
+MemberModel --> chat_members : ORM
+MessageModel --> messages : ORM
+
+@enduml

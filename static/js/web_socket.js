@@ -6,12 +6,45 @@ const currentUsernameSpan = document.getElementById("current-username");
 const usernameInput = document.getElementById("username-input");
 const updateUsernameButton = document.getElementById("update-username-button");
 
-let currentUsername = "";
+const pathParts = window.location.pathname.split('/');
+console.log(pathParts);
+const chatId = parseInt(pathParts[pathParts.length - 1], 10); // Ensure it's a number
+console.log(chatId);
+function loadPreviousMessages(chatId) {
+    fetch(`/api/messages/${chatId}`)
+        .then(response => response.json())
+        .then(data => {
+            data.messages.forEach(msg => {
+                addMessage(msg.content, "user", msg.username);
+            });
+        })
+        .catch(error => console.error('Error loading messages:', error));
+}
 
-socket.on("set_username", (data) => {
-    currentUsername = data.username;
-    currentUsernameSpan.textContent = `Your username: ${currentUsername}`;
+
+let currentUsername = "";
+const displayedMessages = new Set();
+
+let connectionEstablished = false;
+
+socket.on('connect', function () {
+    console.log('Socket connected successfully');
+    connectionEstablished = true;
+    joinChatRoom();
 });
+
+function joinChatRoom() {
+    console.log('Joining chat room:', chatId);
+    // Join needs to happen before any messages can be received
+    socket.emit('join', { chat_id: chatId });
+
+    // Add this debug line to confirm joining worked
+    socket.on('joined_chat', (data) => {
+        console.log('Successfully joined chat room:', data.chat_id);
+        loadPreviousMessages(chatId);
+    });
+}
+
 
 socket.on("user_joined", (data) => {
     addMessage(`${data.username} joined the chat`, "system");
@@ -21,8 +54,19 @@ socket.on("user_left", (data) => {
     addMessage(`${data.username} left the chat`, "system");
 });
 
-socket.on("new_message", (data) => {
-    addMessage(data.message, "user", data.username, data.avatar);
+socket.on("receive_message", (data) => {
+    console.log("Received message:", data);
+
+    // Create a unique identifier for this message
+    const messageId = data.message_id || `${data.timestamp}-${data.username}-${data.message.substring(0, 10)}`;
+
+    // Check if we've already displayed this message
+    if (!displayedMessages.has(messageId)) {
+        displayedMessages.add(messageId);
+        addMessage(data.message, "user", data.username);
+    } else {
+        console.log("Skipping duplicate message:", messageId);
+    }
 });
 
 socket.on("username_updated", (data) => {
@@ -38,12 +82,12 @@ messageInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") sendMessage();
 });
 
-updateUsernameButton.addEventListener("click", updateUsername);
+
 
 function sendMessage() {
     const message = messageInput.value.trim();
     if (message) {
-        socket.emit("send_message", { message });
+        socket.emit("send_message", { message: message, chat_id: chatId });
         messageInput.value = "";
     }
 }
@@ -56,7 +100,7 @@ function updateUsername() {
     }
 }
 
-function addMessage(message, type, username = "", avatar = "") {
+function addMessage(message, type, username = "",) {
     const messageElement = document.createElement("div");
     messageElement.className = "message";
 

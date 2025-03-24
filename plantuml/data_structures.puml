@@ -1,0 +1,52 @@
+@startuml Class Diagram
+
+skinparam classAttributeIconSize 0
+
+class User {
+  +id: Integer
+  +username: String
+  +password_hash: String
+  +is_admin: Boolean
+  +is_blocked: Boolean
+  +blocked_at: DateTime
+  +blocked_reason: Text
+  +created_at: DateTime
+  +set_password(password: String): void
+  +check_password(password: String): Boolean
+  +block(reason: String): void
+  +unblock(): void
+}
+
+class Chat {
+  +id: Integer
+  +name: String
+  +is_group: Boolean
+  +created_at: DateTime
+  +add_member(user: User, is_moderator: Boolean): ChatMember
+  +remove_member(user: User): void
+  +is_member(user: User): Boolean
+  +get_members(): List<User>
+  +get_moderators(): List<User>
+}
+
+class ChatMember {
+  +user_id: Integer
+  +chat_id: Integer
+  +is_moderator: Boolean
+  +joined_at: DateTime
+}
+
+class ChatMessage {
+  +id: Integer
+  +chat_id: Integer
+  +user_id: Integer
+  +content: Text
+  +sent_at: DateTime
+}
+
+User "1" *-- "many" ChatMember : has >
+Chat "1" *-- "many" ChatMember : contains >
+User "1" *-- "many" ChatMessage : writes >
+Chat "1" *-- "many" ChatMessage : contains >
+
+@enduml

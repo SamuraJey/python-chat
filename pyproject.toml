@@ -3,7 +3,7 @@ name = "python-chat"
 version = "0.1.0"
 description = ""
 readme = "README.md"
-requires-python = ">=3.13, <4"
+requires-python = ">=3.11, <4"
 dependencies = [
     "python-engineio (>=4.9.1)",
     "python-socketio (>=5.11.4)",
@@ -32,6 +32,7 @@ dependencies = [
     "pydantic (>=2.0.0)",
     "pydantic-core (>=2.0.0)",
     "sqlalchemy2-stubs (>=0.0.2a38,<0.0.3)",
+    "mypy (>=1.15.0,<2.0.0)",
 ]
 
 [tool.poetry]
@@ -82,7 +83,7 @@ exclude = [
     "./postgres-data",
 ]
 
-line-length = 120
+line-length = 200
 indent-width = 4
 target-version = "py313"
 
@@ -128,5 +129,3 @@ skip-magic-trailing-comma = false
 
 # Like Black, automatically detect the appropriate line ending.
 line-ending = "auto"
-
-

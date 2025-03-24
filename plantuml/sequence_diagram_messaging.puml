@@ -1,0 +1,42 @@
+@startuml Chat Messaging Sequence
+
+actor Пользователь as User
+participant "Браузер" as Browser
+participant "web_socket.js" as JS
+participant "Flask сервер" as Server
+participant "Socket.IO" as SocketIO
+participant "events.py" as Events
+database "База данных" as DB
+
+User -> Browser: Открыть /chat/{chat_id}
+Browser -> Server: GET /chat/{chat_id}
+Server -> Browser: Отобразить страницу чата
+Browser -> JS: Инициализировать Socket.IO
+
+JS -> SocketIO: socket.connect()
+SocketIO -> Events: handle_connect()
+Events -> SocketIO: Подтверждение соединения
+SocketIO -> JS: connected
+
+JS -> SocketIO: socket.emit("join", {chat_id})
+SocketIO -> Events: handle_join()
+Events -> SocketIO: Присоединить к комнате
+SocketIO -> JS: emit("user_joined")
+SocketIO -> Browser: User joined the chat
+
+JS -> Server: GET /api/messages/{chat_id}
+Server -> DB: Запросить историю сообщений
+DB -> Server: История сообщений
+Server -> JS: JSON с историей сообщений
+JS -> Browser: Отобразить историю сообщений
+
+User -> Browser: Написать сообщение и нажать "Send"
+Browser -> JS: Отправить сообщение
+JS -> SocketIO: socket.emit("send_message", {chat_id, message})
+SocketIO -> Events: handle_message()
+Events -> DB: Сохранить сообщение (ChatMessage)
+Events -> SocketIO: Отправить всем в комнате
+SocketIO -> Browser: Новое сообщение (всем участникам)
+Browser -> Browser: Отобразить сообщение
+
+@enduml
