@@ -1,0 +1,48 @@
+@startuml Login Sequence
+
+actor Пользователь as User
+participant "Браузер" as Browser
+participant "Flask сервер" as Server
+participant "auth.bp" as Auth
+participant "LoginForm" as Form
+participant "User Model" as UserModel
+database "База данных" as DB
+participant "Flask-Login" as FlaskLogin
+
+User -> Browser: Открыть /login
+Browser -> Server: GET /login
+Server -> Auth: login()
+Auth -> Form: создать форму
+alt Пользователь уже аутентифицирован
+    Auth -> Server: redirect(url_for("index.index"))
+else Пользователь не аутентифицирован
+    Auth -> Server: render_template("login.html", form=form)
+end
+Server -> Browser: Отобразить форму логина
+
+User -> Browser: Заполнить форму и отправить
+Browser -> Server: POST /login
+Server -> Auth: login()
+Auth -> Form: validate_on_submit()
+
+alt Форма валидна
+    Auth -> DB: User.query.filter_by(username=form.username.data).first()
+    DB -> Auth: user
+    
+    alt Пользователь найден и пароль верный
+        Auth -> UserModel: check_password(form.password.data)
+        UserModel -> Auth: True
+        Auth -> FlaskLogin: login_user(user, remember=form.remember.data)
+        Auth -> Server: redirect(url_for("index.index"))
+        Server -> Browser: Перенаправить на /
+    else Пользователь не найден или пароль неверный
+        Auth -> Server: flash("Login failed.")
+        Auth -> Server: render_template("login.html", form=form)
+        Server -> Browser: Отобразить сообщение об ошибке
+    end
+else Ошибка в форме
+    Auth -> Server: render_template("login.html", form=form)
+    Server -> Browser: Отобразить ошибки формы
+end
+
+@enduml

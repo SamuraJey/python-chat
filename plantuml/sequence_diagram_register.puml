@@ -1,0 +1,40 @@
+@startuml Registration Sequence
+
+actor Пользователь as User
+participant "Браузер" as Browser
+participant "Flask сервер" as Server
+participant "auth.bp" as Auth
+participant "RegistrationForm" as Form
+participant "User Model" as UserModel
+database "База данных" as DB
+
+User -> Browser: Открыть /register
+Browser -> Server: GET /register
+Server -> Auth: register()
+Auth -> Form: создать форму
+alt Пользователь уже аутентифицирован
+    Auth -> Server: redirect(url_for("index.index"))
+else Пользователь не аутентифицирован
+    Auth -> Server: render_template("register.html", form=form)
+end
+Server -> Browser: Отобразить форму регистрации
+
+User -> Browser: Заполнить форму и отправить
+Browser -> Server: POST /register
+Server -> Auth: register()
+Auth -> Form: validate_on_submit()
+
+alt Форма валидна
+    Auth -> UserModel: создать нового пользователя
+    UserModel -> UserModel: set_password(form.password.data)
+    Auth -> DB: db.session.add(user)
+    Auth -> DB: db.session.commit()
+    Auth -> Server: flash("Your account has been created!")
+    Auth -> Server: redirect(url_for("auth.login"))
+    Server -> Browser: Перенаправить на /login
+else Ошибка в форме
+    Auth -> Server: render_template("register.html", form=form)
+    Server -> Browser: Отобразить ошибки формы
+end
+
+@enduml
