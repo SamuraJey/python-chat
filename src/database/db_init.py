@@ -1,3 +1,7 @@
+from src.database.models.user import User
+from src.database.models.chat_message import ChatMessage
+from src.database.models.chat import Chat, ChatMember
+from src.database import db
 import logging
 import os
 import sys
@@ -5,10 +9,6 @@ import sys
 # Add the project root to Python path to fix import issues
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
-from src.database import db
-from src.database.models.chat import Chat, ChatMember
-from src.database.models.chat_message import ChatMessage
-from src.database.models.user import User
 
 # Configure logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -38,8 +38,8 @@ def initialize_db(app, db):
             logger.info("Created sample users")
 
             # Create sample chats
-            chat1 = Chat(name="General Chat")
-            chat2 = Chat(name="Project Discussion")
+            chat1 = Chat(name="General Chat", is_group=True)
+            chat2 = Chat(name="Project Discussion", is_group=False)
 
             db.session.add_all([chat1, chat2])
             db.session.commit()

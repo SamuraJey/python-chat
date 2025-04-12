@@ -1,1 +1,24 @@
-мы сломались
+{% extends "base.html" %}
+
+{% block title %}500 - Server Error{% endblock %}
+
+{% block header %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+<div class="error-container">
+    <div class="error-content">
+        <div class="error-icon">
+            <i class="fas fa-bug"></i>
+        </div>
+        <h1>500</h1>
+        <h2>Server Error</h2>
+        <p>Oops! Something went wrong on our end. Please try again later.</p>
+        <a href="{{ url_for('index.index') }}" class="btn btn-primary">
+            <i class="fas fa-home"></i> Go to Homepage
+        </a>
+    </div>
+</div>
+{% endblock %}

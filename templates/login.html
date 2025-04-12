@@ -2,44 +2,63 @@
 
 {% block title %}Login - Python Chat App{% endblock %}
 
+{% block header %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+{% endblock %}
+
 {% block content %}
-<div class="container">
-    <div class="header">Python Chat</div>
-    <div class="nav">
-        <a href="{{ url_for('index.index') }}">Home</a>
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <i class="fas fa-comments"></i>
+            <h1>Python Chat</h1>
+        </div>
+
+        <h2>Login</h2>
+
+        <form method="POST" action="">
+            {{ form.hidden_tag() }}
+
+            <div class="form-group">
+                {{ form.username.label(class="form-label") }}
+                {{ form.username(class="form-input", placeholder="Enter your username") }}
+                {% if form.username.errors %}
+                <div class="error-messages">
+                    {% for error in form.username.errors %}
+                    <span class="error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group">
+                {{ form.password.label(class="form-label") }}
+                {{ form.password(class="form-input", placeholder="Enter your password") }}
+                {% if form.password.errors %}
+                <div class="error-messages">
+                    {% for error in form.password.errors %}
+                    <span class="error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <div class="form-group remember-me">
+                <label class="remember-container">
+                    {{ form.remember(class="form-checkbox") }}
+                    <span class="checkbox-label">Remember me</span>
+                </label>
+            </div>
+
+            <div class="form-group">
+                {{ form.submit(class="btn btn-primary") }}
+            </div>
+        </form>
+
+        <div class="auth-footer">
+            <p>Don't have an account? <a href="{{ url_for('auth.register') }}" class="text-link">Register here</a></p>
+        </div>
     </div>
-    <h2>Login</h2>
-    <form method="POST" action="">
-        {{ form.hidden_tag() }}
-
-        <div class="form-group">
-            {{ form.username.label }}
-            {{ form.username }}
-            {% if form.username.errors %}
-            {% for error in form.username.errors %}
-            <span class="error">{{ error }}</span>
-            {% endfor %}
-            {% endif %}
-        </div>
-
-        <div class="form-group">
-            {{ form.password.label }}
-            {{ form.password }}
-            {% if form.password.errors %}
-            {% for error in form.password.errors %}
-            <span class="error">{{ error }}</span>
-            {% endfor %}
-            {% endif %}
-        </div>
-
-        <div class="form-group">
-            {{ form.remember }} {{ form.remember.label }}
-        </div>
-
-        <div class="form-group">
-            {{ form.submit(class="btn") }}
-        </div>
-    </form>
-    <p>Don't have an account? <a href="{{ url_for('auth.register') }}">Register here</a></p>
 </div>
 {% endblock %}

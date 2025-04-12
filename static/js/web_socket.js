@@ -100,7 +100,8 @@ function updateUsername() {
     }
 }
 
-function addMessage(message, type, username = "",) {
+// Update your addMessage function to match our new styling
+function addMessage(message, type, username = "") {
     const messageElement = document.createElement("div");
     messageElement.className = "message";
 
@@ -119,6 +120,7 @@ function addMessage(message, type, username = "",) {
         contentDiv.appendChild(usernameDiv);
 
         const messageText = document.createElement("div");
+        messageText.className = "message-text";
         messageText.textContent = message;
         contentDiv.appendChild(messageText);
 
