@@ -45,7 +45,7 @@ class TestChat:
         session.flush()
 
         # Add user to chat using the add_member method
-        member = chat.add_member(user)
+        chat.add_member(user)
         session.commit()
 
         # Verify member is added

@@ -1,10 +1,12 @@
-from flask import Blueprint, abort, current_app, render_template
+from flask import Blueprint, abort, current_app, jsonify, render_template
 from flask_login import current_user, login_required
 
+from src.database import db
 from src.database.models.chat import Chat
+from src.database.models.chat_message import ChatMessage
+from src.database.models.user import User
 
 bp = Blueprint("chats", __name__)
-from src.database import db
 
 
 @bp.route("/chat/<int:chat_id>")
@@ -20,13 +22,6 @@ def chat_page(chat_id):
         abort(500)
 
 
-from flask import jsonify
-
-from src.database.models.chat_message import ChatMessage
-from src.database.models.user import User
-
-
-# Add this new route
 @bp.route("/api/messages/<int:chat_id>")
 @login_required
 def get_chat_messages(chat_id):

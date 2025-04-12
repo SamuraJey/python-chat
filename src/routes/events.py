@@ -14,7 +14,6 @@ users: dict[str, dict[str, Any]] = {}
 
 def init_socketio(socketio):
     """Initialize Socket.IO event handlers"""
-    logger = current_app.logger
 
     @socketio.on("connect")
     def handle_connect():
@@ -32,7 +31,7 @@ def init_socketio(socketio):
         emit("set_username", {"username": username})
 
         # Send current online users count
-        emit("online_users", {"users": list(set(user["username"] for user in users.values()))}, broadcast=True)
+        emit("online_users", {"users": list({user["username"] for user in users.values()})}, broadcast=True)
 
     @socketio.on("disconnect")
     def handle_disconnect():
@@ -42,7 +41,7 @@ def init_socketio(socketio):
             current_app.logger.info(f"User {user['username']} disconnected from socket ID {request.sid}")
             emit("user_left", {"username": user["username"]}, broadcast=True)
             # Update online users count
-            emit("online_users", {"users": list(set(user["username"] for user in users.values()))}, broadcast=True)
+            emit("online_users", {"users": list({user["username"] for user in users.values()})}, broadcast=True)
 
     @socketio.on("send_message")
     def handle_message(data):
@@ -196,7 +195,7 @@ def init_socketio(socketio):
     @socketio.on("get_online_users")
     def handle_get_online_users():
         """Send list of online users"""
-        unique_users = list(set(user["username"] for user in users.values()))
+        unique_users = list({user["username"] for user in users.values()})
         emit("online_users", {"users": unique_users})
 
     return socketio

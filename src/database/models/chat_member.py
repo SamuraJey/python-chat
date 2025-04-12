@@ -1,6 +1,7 @@
 from datetime import UTC, datetime
 
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer
+from sqlalchemy.orm import Mapped, mapped_column
 
 from src.database import BaseModel, db
 
@@ -10,12 +11,11 @@ class ChatMember(BaseModel):
 
     __tablename__ = "chat_members"
 
-    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
-    chat_id = Column(Integer, ForeignKey("chats.id", ondelete="CASCADE"), primary_key=True)
-    is_moderator = Column(Boolean, default=False)
-    joined_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), primary_key=True)
+    chat_id: Mapped[int] = mapped_column(Integer, ForeignKey("chats.id", ondelete="CASCADE"), primary_key=True)
+    is_moderator: Mapped[bool] = mapped_column(Boolean, default=False)
+    joined_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
-    # Relationships
     user = db.relationship("User", back_populates="chats")
     chat = db.relationship("Chat", back_populates="members")
 

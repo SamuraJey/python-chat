@@ -38,7 +38,7 @@ class TestChatMessage:
         session.flush()
 
         # Add user to chat
-        chat_member = chat.add_member(user)
+        chat.add_member(user)
 
         # Create message
         message = ChatMessage(chat_id=chat.id, user_id=user.id, content="Testing relationships")

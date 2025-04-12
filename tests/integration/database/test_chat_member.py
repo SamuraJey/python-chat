@@ -129,9 +129,8 @@ class TestChatMember:
         try:
             assert f"<ChatMember user_id={user.id} chat_id={chat.id} is_moderator=False>" == repr(member)
         except AssertionError:
-            print(f"Warning: {repr(member)} does not match expected format.")
+            print(f"Warning: {repr(member)} does not match expected format.")  # noqa: T201
 
-        # Update to moderator
         member.is_moderator = True
         session.commit()
 
@@ -140,4 +139,4 @@ class TestChatMember:
         try:
             assert f"<ChatMember user_id={user.id} chat_id={chat.id} is_moderator=True>" == repr(member)
         except AssertionError:
-            print(f"Warning: {repr(member)} does not match expected format.")
+            print(f"Warning: {repr(member)} does not match expected format.")  # noqa: T201

@@ -1,7 +1,8 @@
 from datetime import UTC, datetime
 
 from flask_login import UserMixin
-from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, Integer, String, Text
+from sqlalchemy.orm import Mapped, mapped_column
 from werkzeug.security import check_password_hash, generate_password_hash
 
 from src.database import BaseModel, db
@@ -11,17 +12,16 @@ class User(UserMixin, BaseModel):
     """User model for authentication and session management."""
 
     __tablename__ = "users"
-    # TODO поменять на mapped coloumn
-    id = Column(Integer, primary_key=True)
-    username = Column(String(64), unique=True, nullable=False)
-    password_hash = Column(String(255), nullable=False)
-    is_admin = Column(Boolean, default=False)
-    is_blocked = Column(Boolean, default=False)
-    blocked_at = Column(DateTime(timezone=True))
-    blocked_reason = Column(Text)
-    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
-    # Relationships
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    username: Mapped[str] = mapped_column(String(64), unique=True, nullable=False)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    is_admin: Mapped[bool] = mapped_column(Boolean, default=False)
+    is_blocked: Mapped[bool] = mapped_column(Boolean, default=False)
+    blocked_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    blocked_reason: Mapped[str | None] = mapped_column(Text, nullable=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
+
     chats = db.relationship("ChatMember", back_populates="user", cascade="all, delete-orphan")
     messages = db.relationship("ChatMessage", back_populates="user", cascade="all, delete-orphan")
 

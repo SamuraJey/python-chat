@@ -9,9 +9,6 @@ from testcontainers.postgres import PostgresContainer
 from src.app import create_app
 from src.database import db
 
-# Add the project root directory to Python path
-# sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-
 
 @pytest.fixture(scope="session")
 def postgres_container() -> Generator[PostgresContainer, Any]:
