@@ -1,0 +1,37 @@
+Надо написать тесты для проекта. Вот примерный план:
+
+**Backend (Python - in tests directory):**
+
+1.  **Authentication Tests:**
+    *   Test user registration with valid and invalid data.
+    *   Test user login with correct and incorrect credentials (templates/login.html).
+    *   Test logout functionality.
+    *   Test access control for protected routes/endpoints.
+2.  **Database Model Tests:**
+    *   Test creation, retrieval, update, and deletion for `User`, `Chat`, `ChatMessage`, and `ChatMember` models.
+    *   Test relationships between models (e.g., a user having multiple messages, messages belonging to a chat).ъ
+    *   p.s. It is kinda done
+3.  **API Endpoint Tests:**
+    *   Test the `/api/messages/{chatId}` endpoint (used in `loadPreviousMessages`) to ensure it returns the correct messages for a given chat ID and handles cases like invalid IDs or unauthorized access.
+4.  **WebSocket Event Tests (using Flask-SocketIO test client):**
+    *   Test the `join` event (`joinChatRoom`): Simulate a client joining, verify server-side state (e.g., user added to room), and check if `user_joined` (`socket.on("user_joined")`) is broadcast correctly.
+    *   Test the `send_message` event (`sendMessage`): Simulate sending a message, verify it's saved to the database (`ChatMessage`), and check if it's broadcast to the correct room.
+    *   Test the `update_username` event (`updateUsername`): Simulate a username update, verify the change in the database (`User`), and check for any related broadcasts.
+    *   Test disconnection handling: Simulate a client disconnecting and verify that `user_left` (`socket.on("user_left")`) is broadcast.
+
+**Frontend (JavaScript - potentially using Jest, Cypress, or similar in tests or a dedicated frontend test folder):**
+
+1.  **WebSocket Connection & Chat Join:**
+    *   Verify that the socket connects successfully on page load (`socket.on('connect')`).
+    *   Ensure the `join` event is emitted with the correct `chatId` when the chat page loads (`joinChatRoom`).
+2.  **Message Handling:**
+    *   Test `loadPreviousMessages` to ensure it fetches and displays messages from the API correctly.
+    *   Test `sendMessage`: Mock the socket emit, verify the input is cleared, and the correct data is sent.
+    *   Test receiving messages: Mock incoming `message` events and verify they are added to the chat display (`addMessage`).
+    *   Test receiving system messages (`user_joined`, `user_left`) and verify they are displayed correctly (`addMessage`).
+3.  **UI Interaction:**
+    *   Test clicking the send button triggers `sendMessage`.
+    *   Test pressing Enter in the message input triggers `sendMessage`.
+    *   Test the username update functionality (`updateUsername`).
+
+Consider starting with unit tests for backend logic (models, helpers) and then adding integration tests for API endpoints and WebSocket events. For the frontend, component tests or end-to-end tests using a tool like Cypress can cover user interactions and WebSocket communication effectively.
