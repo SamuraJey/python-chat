@@ -1,10 +1,11 @@
-from src.database.models.user import User
-from src.database.models.chat_message import ChatMessage
-from src.database.models.chat import Chat, ChatMember
-from src.database import db
 import logging
 import os
 import sys
+
+from src.database import db
+from src.database.models.chat import Chat, ChatMember
+from src.database.models.chat_message import ChatMessage
+from src.database.models.user import User
 
 # Add the project root to Python path to fix import issues
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
