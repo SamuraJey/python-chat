@@ -1,6 +1,6 @@
 Надо написать тесты для проекта. Вот примерный план:
 
-**Backend (Python - in tests directory):**
+**Backend:**
 
 1.  **Authentication Tests:**
     *   Test user registration with valid and invalid data.
@@ -35,3 +35,5 @@
     *   Test the username update functionality (`updateUsername`).
 
 Consider starting with unit tests for backend logic (models, helpers) and then adding integration tests for API endpoints and WebSocket events. For the frontend, component tests or end-to-end tests using a tool like Cypress can cover user interactions and WebSocket communication effectively.
+
+Надо написать CI/CD pipeline для автоматизации тестирования и деплоя. Добавить pre-commit который будет форматировать/линтить код
