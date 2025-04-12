@@ -33,6 +33,7 @@ dependencies = [
     "pydantic-core (>=2.0.0)",
     "sqlalchemy2-stubs (>=0.0.2a38,<0.0.3)",
     "mypy (>=1.15.0,<2.0.0)",
+    "testcontainers (>=4.10.0,<5.0.0)",
 ]
 
 [tool.poetry]
@@ -129,3 +130,17 @@ skip-magic-trailing-comma = false
 
 # Like Black, automatically detect the appropriate line ending.
 line-ending = "auto"
+
+[tool.pytest.ini_options]
+pythonpath = "src"
+addopts = ["--import-mode=importlib"]
+testpaths = "tests"
+norecursedirs = [
+    "postgres-data",
+    ".git",
+    ".venv",
+    "__pycache__",
+    "static",
+    "templates",
+    "logs",
+]
