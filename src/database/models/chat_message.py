@@ -13,8 +13,8 @@ class ChatMessage(BaseModel):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     chat_id: Mapped[int] = mapped_column(Integer, ForeignKey("chats.id", ondelete="CASCADE"), nullable=False)
-    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False) 
-    #TODO ПОдумать Changing the deletion behavior from SET NULL to CASCADE for the user_id foreign key may lead to unintentional deletion of chat messages if a user is removed. Confirm that this behavior is intended for preserving chat history.
+    user_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id", ondelete="SET NULL"), nullable=True)
+    # Изменили на SET NULL и nullable=True, чтобы сообщения сохранялись при удалении пользователя
     content: Mapped[str] = mapped_column(Text, nullable=False)
     sent_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 

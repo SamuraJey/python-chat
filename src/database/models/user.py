@@ -23,7 +23,7 @@ class User(UserMixin, BaseModel):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(UTC))
 
     chats = db.relationship("ChatMember", back_populates="user", cascade="all, delete-orphan")
-    messages = db.relationship("ChatMessage", back_populates="user", cascade="all, delete-orphan")
+    messages = db.relationship("ChatMessage", back_populates="user", passive_deletes=True)
 
     def set_password(self, password) -> None:
         """Hash and set the user password."""

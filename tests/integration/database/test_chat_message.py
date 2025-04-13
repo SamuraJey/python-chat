@@ -108,3 +108,37 @@ class TestChatMessage:
         # For long message, content should be truncated with ...
         assert "..." in repr(long_message)
         assert repr(long_message).startswith(f"<ChatMessage id={long_message.id} chat={chat.id} user={user.id} content='This is a very")
+
+    def test_message_persists_when_user_deleted(self, session):
+        """Test that messages remain in database when a user is deleted."""
+        # Create test data
+        chat = Chat(name="User Deletion Test Chat", is_group=True)
+        user = User(username="deleteduser")
+        user.set_password("testpass")
+
+        session.add_all([chat, user])
+        session.flush()
+
+        # Create message
+        message = ChatMessage(chat_id=chat.id, user_id=user.id, content="I should remain after user is deleted")
+
+        session.add(message)
+        session.commit()
+
+        # Store message ID for later verification
+        message_id = message.id
+
+        # Delete the user
+        session.delete(user)
+        session.commit()
+
+        # Verify message still exists in database
+        persisted_message = session.query(ChatMessage).filter_by(id=message_id).first()
+        assert persisted_message is not None
+        assert persisted_message.content == "I should remain after user is deleted"
+
+        # Verify user_id is set to NULL
+        assert persisted_message.user_id is None
+
+        # Verify user relationship is None
+        assert persisted_message.user is None
