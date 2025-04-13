@@ -1,6 +1,6 @@
-from werkzeug.exceptions import HTTPException
 from flask import Blueprint, abort, current_app, jsonify, render_template
 from flask_login import current_user, login_required
+from werkzeug.exceptions import HTTPException
 
 from src.database import db
 from src.database.models.chat import Chat

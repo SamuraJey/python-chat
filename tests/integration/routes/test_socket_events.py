@@ -24,6 +24,7 @@ class TestSocketEvents:
         assert socket_client.is_connected()
 
         return socket_client
+
     @pytest.mark.skip(reason="TODO not done test")
     def test_connect(self, authenticated_socket):
         """Test socket connection event."""
@@ -35,7 +36,7 @@ class TestSocketEvents:
         assert any(event["name"] == "user_joined" for event in received)
         assert any(event["name"] == "set_username" for event in received)
         assert any(event["name"] == "online_users" for event in received)
-    
+
     @pytest.mark.skip(reason="TODO not done test")
     def test_connect_unauthenticated(self, app):
         """Test that unauthenticated users can't establish socket connections."""
