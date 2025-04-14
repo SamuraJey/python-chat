@@ -1,8 +1,8 @@
 <h1 align="center">Python Chat App 💬</h1>
 
-![Demo App](/screenshot-for-readme.png)
+README Work in Progress
 
-[Video Tutorial on Youtube](https://youtu.be/h991oLxOxeM)
+![Demo App](/screenshot-for-readme.png)
 
 About This Course:
 
