@@ -16,7 +16,8 @@ def chat_page(chat_id):
     """Render chat page for specific chat ID"""
     logger = current_app.logger
     try:
-        chat = Chat.query.get_or_404(chat_id)
+        chat = db.get_or_404(Chat, chat_id)
+        # chat = Chat.query.get_or_404(chat_id)
         logger.debug(f"User {current_user.username} accessing chat {chat_id}")
         return render_template("chat_page.html", chat=chat)
     except HTTPException as e:
@@ -32,7 +33,7 @@ def chat_page(chat_id):
 def get_chat_messages(chat_id):
     """Get previous messages for a chat"""
     try:
-        chat = Chat.query.get_or_404(chat_id)
+        chat = db.get_or_404(Chat, chat_id)
         # Используем left join чтобы включить сообщения удаленных пользователей
         messages = db.session.query(ChatMessage, User.username).outerjoin(User, ChatMessage.user_id == User.id).filter(ChatMessage.chat_id == chat_id).order_by(ChatMessage.sent_at).all()
         # Format messages for JSON response

@@ -20,7 +20,8 @@ def login():
     if form.validate_on_submit():
         logger.debug(f"Login attempt for user: {form.username.data}")
         try:
-            user = User.query.filter_by(username=form.username.data).first()
+            # user = User.query.filter_by(username=form.username.data).first()
+            user = db.session.query(User).filter_by(username=form.username.data).first()
 
             if user and user.check_password(form.password.data):
                 login_user(user, remember=form.remember.data)

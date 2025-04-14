@@ -21,7 +21,8 @@ class TestIndexRoutes:
     def test_index_no_chats(self, authenticated_client, user, session):
         """Test index view when user has no chats."""
         # Remove any existing chat memberships
-        ChatMember.query.filter_by(user_id=user.id).delete()
+
+        session.query(ChatMember).filter_by(user_id=user.id).delete()
         session.commit()
 
         response = authenticated_client.get("/", follow_redirects=True)

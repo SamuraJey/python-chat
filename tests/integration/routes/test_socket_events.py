@@ -93,7 +93,8 @@ class TestSocketEvents:
         assert message_events[0]["args"][0]["message"] == message_content
 
         # Verify message was saved to database
-        message = ChatMessage.query.filter_by(content=message_content).first()
+        message = session.query(ChatMessage).filter_by(content=message_content).first()
+        # message = ChatMessage.query.filter_by(content=message_content).first()
         assert message is not None
         assert message.chat_id == chat.id
 

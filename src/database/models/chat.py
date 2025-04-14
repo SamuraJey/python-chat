@@ -25,19 +25,23 @@ class Chat(BaseModel):
 
     def add_member(self, user: User, is_moderator=False) -> ChatMember:
         """Add a user to this chat."""
-        member = ChatMember(user_id=user.id, chat_id=self.id, is_moderator=is_moderator)  # type: ignore[call-arg]
+        member = ChatMember(user_id=user.id, chat_id=self.id, is_moderator=is_moderator)
         db.session.add(member)
+        db.session.commit()
         return member
 
     def remove_member(self, user: User) -> None:
         """Remove a user from this chat."""
-        member = ChatMember.query.filter_by(user_id=user.id, chat_id=self.id).first()
+        member = db.session.query(ChatMember).filter_by(user_id=user.id, chat_id=self.id).first()
         if member:
             db.session.delete(member)
+            db.session.commit()
 
     def is_member(self, user: User) -> bool:
         """Check if a user is a member of this chat."""
-        return ChatMember.query.filter_by(user_id=user.id, chat_id=self.id).first() is not None
+        # надо переписать на новый стиль, без легаси query
+        return db.session.query(ChatMember).filter_by(user_id=user.id, chat_id=self.id).first() is not None
+        # return ChatMember.query.filter_by(user_id=user.id, chat_id=self.id).first() is not None
 
     def get_members(self) -> list[User]:
         """Get all users in this chat."""

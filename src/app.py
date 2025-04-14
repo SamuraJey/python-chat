@@ -34,20 +34,21 @@ def create_app(test_config=None) -> Flask:
     login_manager = LoginManager(app)
     login_manager.login_view = "auth.login"
 
-    @login_manager.user_loader
-    def load_user(user_id):
-        try:
-            user = User.query.get(int(user_id))
-            return user
-        except Exception as e:
-            app.logger.error(f"Error loading user {user_id}: {e}")
-            return None
-
     setup_logger(app)
 
     with app.app_context():
         db.create_all()
         app.logger.info("Database tables created successfully")
+
+    @login_manager.user_loader
+    def load_user(user_id):
+        try:
+            user = db.session.get(User, user_id)
+            # user = User.query.get(int(user_id))
+            return user
+        except Exception as e:
+            app.logger.error(f"Error loading user {user_id}: {e}")
+            return None
 
     from src.routes import auth, chats, index
 

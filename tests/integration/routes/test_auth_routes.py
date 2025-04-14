@@ -35,14 +35,14 @@ class TestAuthRoutes:
         assert response.status_code == 200
         assert b"Login failed" in response.data
 
-    def test_register_success(self, test_client):
+    def test_register_success(self, test_client, session):
         """Test successful user registration."""
         response = test_client.post("/register", data={"username": "newuser", "password": "password123", "confirm_password": "password123"}, follow_redirects=True)
         assert response.status_code == 200
         assert b"Your account has been created" in response.data
 
         # Verify the user was created in the database
-        user = User.query.filter_by(username="newuser").first()
+        user = session.query(User).filter_by(username="newuser").first()
         assert user is not None
 
     def test_register_username_taken(self, test_client, user):
