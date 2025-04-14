@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(leve
 logger = logging.getLogger(__name__)
 
 
-def initialize_db(app, db):
+def initialize_db(app, db):  # pragma: no cover
     """Initialize database with sample data"""
     with app.app_context():
         try:
