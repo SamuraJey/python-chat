@@ -2,17 +2,6 @@
 
 **Backend:**
 
-1.  **Authentication Tests:**
-    *   Test user registration with valid and invalid data.
-    *   Test user login with correct and incorrect credentials (templates/login.html).
-    *   Test logout functionality.
-    *   Test access control for protected routes/endpoints.
-2.  **Database Model Tests:**
-    *   Test creation, retrieval, update, and deletion for `User`, `Chat`, `ChatMessage`, and `ChatMember` models.
-    *   Test relationships between models (e.g., a user having multiple messages, messages belonging to a chat).ъ
-    *   p.s. It is kinda done
-3.  **API Endpoint Tests:**
-    *   Test the `/api/messages/{chatId}` endpoint (used in `loadPreviousMessages`) to ensure it returns the correct messages for a given chat ID and handles cases like invalid IDs or unauthorized access.
 4.  **WebSocket Event Tests (using Flask-SocketIO test client):**
     *   Test the `join` event (`joinChatRoom`): Simulate a client joining, verify server-side state (e.g., user added to room), and check if `user_joined` (`socket.on("user_joined")`) is broadcast correctly.
     *   Test the `send_message` event (`sendMessage`): Simulate sending a message, verify it's saved to the database (`ChatMessage`), and check if it's broadcast to the correct room.
