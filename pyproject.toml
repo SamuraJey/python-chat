@@ -31,8 +31,8 @@ dependencies = [
     "packaging (>=24.1)",
     "pydantic (>=2.0.0)",
     "pydantic-core (>=2.0.0)",
-    "sqlalchemy2-stubs (>=0.0.2a38,<0.0.3)",
     "mypy (>=1.15.0,<2.0.0)",
+    "testcontainers (>=4.10.0,<5.0.0)",
 ]
 
 [tool.poetry]
@@ -44,13 +44,13 @@ requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
 
 [tool.mypy]
+plugins = "pydantic.mypy"
+exclude = ["postgres-data", "tests"]
 warn_return_any = true
 warn_unused_configs = true
-plugins = "pydantic.mypy"
-
 follow_untyped_imports = true
-exclude = "postgres-data"
-
+ignore_missing_imports = true
+warn_unreachable = true
 
 [tool.ruff]
 exclude = [
@@ -88,44 +88,59 @@ indent-width = 4
 target-version = "py313"
 
 [tool.ruff.lint]
+# E - pycodestyle F - Pyflakes UP - pyupgrade B - flake8-bugbear SIM - flake8-simplify I - isort
+# N - flake8-annotations A - flake8-annotations T20 - flake8-tidy-imports ERA - flake8-eradicate
+# C4 - flake8-comprehensions TID - flake8-tidy-imports PERF - flake8-perf
 select = [
-    # pycodestyle
     "E",
-    # Pyflakes
     "F",
-    # pyupgrade
     "UP",
-    # flake8-bugbear
     "B",
-    # flake8-simplify
     "SIM",
-    # isort
     "I",
-    # Unused imports
-    "F401",
-    # Imported but unused
-    "F403",
-    # Unused variables
-    "F841",
+    "N",
+    "A",
+    "T20",
+    "ERA",
+    "C4",
+    "TID",
+    "PERF",
 ]
 ignore = ["SIM108"]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]
 unfixable = []
-
 # Allow unused variables when underscore-prefixed.
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+
+[tool.ruff.lint.per-file-ignores]
+# Ignore E501 (line too long) in tests.
+"tests/*" = ["E501"]
+
+[tool.ruff.lint.isort]
+split-on-trailing-comma = false
 
 [tool.ruff.format]
 # Like Black, use double quotes for strings.
 quote-style = "double"
-
 # Like Black, indent with spaces, rather than tabs.
 indent-style = "space"
-
 # Like Black, respect magic trailing commas.
 skip-magic-trailing-comma = false
-
 # Like Black, automatically detect the appropriate line ending.
 line-ending = "auto"
+
+[tool.pytest.ini_options]
+pythonpath = "src"
+addopts = ["--import-mode=importlib"]
+testpaths = "tests"
+norecursedirs = [
+    "postgres-data",
+    ".git",
+    ".venv",
+    "__pycache__",
+    "static",
+    "templates",
+    "logs",
+]
