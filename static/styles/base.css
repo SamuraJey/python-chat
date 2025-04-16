@@ -630,3 +630,171 @@ body {
     background-color: rgba(255, 255, 255, 0.15);
     font-weight: 500;
 }
+
+/* Стили для модального окна создания чата */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    overflow: auto;
+}
+
+.modal-content {
+    background-color: white;
+    margin: 10% auto;
+    padding: 2rem;
+    width: 500px;
+    border-radius: 12px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    position: relative;
+    animation: modalFadeIn 0.3s;
+}
+
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.modal h2 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    color: var(--text-color);
+}
+
+.close {
+    position: absolute;
+    right: 1.5rem;
+    top: 1rem;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #718096;
+}
+
+.close:hover {
+    color: var(--text-color);
+}
+
+/* Стили для селектора типа чата */
+.chat-type-selection {
+    display: flex;
+    margin-bottom: 1.5rem;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e0e0e0;
+}
+
+.chat-type-btn {
+    flex: 1;
+    padding: 0.8rem;
+    border: none;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    font-family: 'Poppins', sans-serif;
+    font-size: 0.9rem;
+    transition: background-color 0.2s, color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.chat-type-btn i {
+    margin-right: 0.5rem;
+}
+
+.chat-type-btn.active {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+/* Стили для поиска пользователей */
+.search-container {
+    margin-bottom: 1.5rem;
+}
+
+.search-results {
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin-top: 0.5rem;
+    display: none;
+}
+
+.search-results.active {
+    display: block;
+}
+
+.search-item {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid #e0e0e0;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.search-item:last-child {
+    border-bottom: none;
+}
+
+.search-item:hover {
+    background-color: #f6f8fe;
+}
+
+/* Стили для выбранных пользователей */
+.selected-users-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.selected-user-tag {
+    background-color: #f0f4ff;
+    border-radius: 20px;
+    padding: 0.4rem 0.8rem;
+    font-size: 0.9rem;
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+}
+
+.remove-user {
+    cursor: pointer;
+    margin-left: 0.5rem;
+    font-size: 0.8rem;
+    color: #718096;
+}
+
+.remove-user:hover {
+    color: var(--secondary-color);
+}
+
+/* Стили для кнопки нового чата на главной странице */
+#create-chat-btn {
+    padding: 0.6rem 1rem;
+    display: flex;
+    align-items: center;
+}
+
+#create-chat-btn i,
+#create-first-chat-btn i {
+    margin-right: 0.5rem;
+}
+
+.modal-footer {
+    margin-top: 1.5rem;
+    display: flex;
+    justify-content: center;
+}

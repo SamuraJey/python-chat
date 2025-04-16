@@ -5,10 +5,10 @@ from sqlalchemy import Boolean, DateTime, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from src.database import BaseModel, db
+from src.database import Base, db
 
 
-class User(UserMixin, BaseModel):
+class User(UserMixin, Base):
     """User model for authentication and session management."""
 
     __tablename__ = "users"

@@ -12,7 +12,9 @@
     <div class="chat-sidebar">
         <div class="app-logo">
             <i class="fas fa-comments"></i>
-            <h1>Python Chat</h1>
+            <a href="{{ url_for('index.index') }}" class="app-logo-text" style="text-decoration: none; color: inherit;">
+                <h1>Python Chat</h1>
+            </a>
         </div>
         <div class="user-info">
             <div class="avatar">{{ current_user.username[0] | upper }}</div>
@@ -34,6 +36,9 @@
     <div class="chat-main">
         <div class="chat-header">
             <h2>Available Chats</h2>
+            <button id="create-chat-btn" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Новый чат
+            </button>
         </div>
 
         <div class="chat-list-container">
@@ -60,9 +65,47 @@
             <div class="no-chats">
                 <i class="fas fa-comment-slash"></i>
                 <p>No chats available</p>
+                <button id="create-first-chat-btn" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Создать чат
+                </button>
             </div>
             {% endif %}
         </div>
     </div>
 </div>
+
+<!-- Модальное окно для создания чата -->
+<div id="create-chat-modal" class="modal">
+    <script src="/static/js/create_chat.js"></script>
+    <div class="modal-content">
+        <span class="close">&times;</span>
+        <h2>Создание нового чата</h2>
+
+        <div class="chat-type-selection">
+            <button id="private-chat-btn" class="chat-type-btn active">
+                <i class="fas fa-user"></i> Личный чат
+            </button>
+            <button id="group-chat-btn" class="chat-type-btn">
+                <i class="fas fa-users"></i> Групповой чат
+            </button>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="user-search" class="form-input" placeholder="Поиск пользователей...">
+            <div id="search-results" class="search-results"></div>
+        </div>
+
+        <div id="selected-users-container" class="selected-users-container"></div>
+
+        <div class="form-group">
+            <label for="chat-name">Название чата</label>
+            <input type="text" id="chat-name" class="form-input" placeholder="Введите название чата">
+        </div>
+
+        <div class="modal-footer">
+            <button id="create-chat-submit" class="btn btn-primary">Создать чат</button>
+        </div>
+    </div>
+</div>
+
 {% endblock %}

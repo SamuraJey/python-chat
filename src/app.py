@@ -8,7 +8,6 @@ from src.database import db
 from src.database.models.user import User
 from src.utils.logger import setup_logger
 
-# Create SocketIO instance
 socketio = SocketIO()
 
 

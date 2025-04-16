@@ -3,10 +3,10 @@ from datetime import UTC, datetime
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column
 
-from src.database import BaseModel, db
+from src.database import Base, db
 
 
-class ChatMember(BaseModel):
+class ChatMember(Base):
     """Association model between users and chats."""
 
     __tablename__ = "chat_members"
