@@ -39,6 +39,9 @@ dependencies = [
 package-mode = false
 
 
+[tool.poetry.group.dev.dependencies]
+pytest-cov = "^6.1.1"
+
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]
 build-backend = "poetry.core.masonry.api"
@@ -143,4 +146,16 @@ norecursedirs = [
     "static",
     "templates",
     "logs",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "@overload",
+    "except ImportError",
+    "\\.\\.\\.",
+    "raise NotImplementedError()",
+    "def __repr__",
+    "if __name__ == .__main__.:",
 ]
