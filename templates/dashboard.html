@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+
+{% block title %}Панель администратора - Python Chat{% endblock %}
+
+{% block header %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="admin-container">
+    <div class="admin-header">
+        <i class="fas fa-chart-line"></i>
+        <h1>Панель администратора</h1>
+    </div>
+
+    <div class="section-title">
+        <i class="fas fa-tachometer-alt"></i>
+        <h2>Основные показатели</h2>
+    </div>
+
+    <div class="analytics-overview">
+        <div class="analytics-card" id="total-users">
+            <i class="fas fa-users card-icon"></i>
+            <h3>Всего пользователей</h3>
+            <div class="analytics-value">-</div>
+        </div>
+
+        <div class="analytics-card" id="total-chats">
+            <i class="fas fa-comments card-icon"></i>
+            <h3>Всего чатов</h3>
+            <div class="analytics-value">-</div>
+        </div>
+
+        <div class="analytics-card" id="active-users">
+            <i class="fas fa-user-check card-icon"></i>
+            <h3>Активных пользователей</h3>
+            <div class="analytics-value">-</div>
+        </div>
+
+        <div class="analytics-card" id="messages-today">
+            <i class="fas fa-comment-dots card-icon"></i>
+            <h3>Сообщений сегодня</h3>
+            <div class="analytics-value">-</div>
+        </div>
+    </div>
+
+    <div class="section-title">
+        <i class="fas fa-chart-bar"></i>
+        <h2>Аналитика</h2>
+    </div>
+
+    <div class="charts-section">
+        <div class="chart-container">
+            <h2>Активность по чатам</h2>
+            <canvas id="chatActivityChart"></canvas>
+        </div>
+
+        <div class="chart-container">
+            <h2>Активность за неделю</h2>
+            <canvas id="userActivityChart"></canvas>
+        </div>
+    </div>
+
+    <div class="admin-footer">
+        <a href="{{ url_for('index.index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Вернуться к списку чатов
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin_dashboard.js') }}"></script>
+{% endblock %}

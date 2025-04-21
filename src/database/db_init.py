@@ -27,7 +27,7 @@ def initialize_db(app, db):  # pragma: no cover
             logger.info("Created database tables")
 
             # Create sample users
-            user1 = User(username="ali")
+            user1 = User(username="ali", is_admin=True)
             user1.set_password("aaa")
             user2 = User(username="bob")
             user2.set_password("bbb")
