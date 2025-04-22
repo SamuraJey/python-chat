@@ -8,7 +8,7 @@
 
 {% block content %}
 <div class="chat-app-container">
-    {% include 'components/sidebar.html' %} 
+    {% include 'components/sidebar.html' %}
     <div class="chat-main">
         <div class="chat-header">
             <h2>Available Chats</h2>
@@ -42,7 +42,7 @@
                 <i class="fas fa-comment-slash"></i>
                 <p>No chats available</p>
                 <button id="create-first-chat-btn" class="btn btn-primary">
-                    <i class="fas fa-plus"></i> Создать чат
+                    Создать чат
                 </button>
             </div>
             {% endif %}
@@ -52,7 +52,7 @@
 
 <!-- Модальное окно для создания чата -->
 <div id="create-chat-modal" class="modal">
-    
+
     <div class="modal-content">
         <span class="close">&times;</span>
         <h2>Создание нового чата</h2>
