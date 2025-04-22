@@ -43,7 +43,6 @@ def create_app(test_config=None) -> Flask:
     def load_user(user_id):
         try:
             user = db.session.get(User, user_id)
-            # user = User.query.get(int(user_id))
             return user
         except Exception as e:
             app.logger.error(f"Error loading user {user_id}: {e}")

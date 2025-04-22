@@ -41,7 +41,6 @@ class Chat(Base):
         """Check if a user is a member of this chat."""
         # надо переписать на новый стиль, без легаси query
         return db.session.query(ChatMember).filter_by(user_id=user.id, chat_id=self.id).first() is not None
-        # return ChatMember.query.filter_by(user_id=user.id, chat_id=self.id).first() is not None
 
     def get_members(self) -> list[User]:
         """Get all users in this chat."""

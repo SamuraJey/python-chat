@@ -6,7 +6,7 @@ from logging.handlers import RotatingFileHandler
 from flask import Flask
 
 
-def setup_logger(app: Flask) -> logging.Logger:
+def setup_logger(app: Flask) -> logging.Logger:  # pragma: no cover
     if not os.path.exists("../../logs"):
         os.makedirs("../../logs")
 

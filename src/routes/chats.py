@@ -21,7 +21,7 @@ def chat_page(chat_id):
     logger = current_app.logger
     try:
         chat = db.get_or_404(Chat, chat_id)
-        # chat = Chat.query.get_or_404(chat_id)
+
         logger.debug(f"User {current_user.username} accessing chat {chat_id}")
         return render_template("chat_page.html", chat=chat)
     except HTTPException as e:
@@ -70,7 +70,7 @@ def search_users():
             return jsonify({"users": []})
 
         # Поиск пользователей по имени (исключая текущего пользователя)
-        users = User.query.filter(User.username.ilike(f"%{query}%"), User.id != current_user.id).limit(10).all()
+        users = db.session.query(User).filter(User.username.ilike(f"%{query}%"), User.id != current_user.id).limit(10).all()
 
         return jsonify({"users": [{"id": user.id, "username": user.username} for user in users]})
     except Exception as e:
@@ -107,7 +107,7 @@ def create_chat():
         # Добавляем остальных участников
         for user_id in user_ids:
             # Проверяем, что пользователь существует
-            user = User.query.get(user_id)
+            user = db.session.query(User).get(user_id)
             if user:
                 member = ChatMember(chat_id=new_chat.id, user_id=user_id, is_moderator=False)
                 db.session.add(member)
@@ -127,7 +127,7 @@ def get_user_chats():
     """Получить список чатов текущего пользователя"""
     try:
         # Получаем чаты, в которых пользователь является участником
-        chats = Chat.query.join(ChatMember, Chat.id == ChatMember.chat_id).filter(ChatMember.user_id == current_user.id).all()
+        chats = db.session.query(Chat).join(ChatMember).filter(ChatMember.user_id == current_user.id).all()
 
         return jsonify({"chats": [{"id": chat.id, "name": chat.name, "is_group": chat.is_group} for chat in chats]})
     except Exception as e:
@@ -174,7 +174,7 @@ def get_analytics_overview():
     active_users = db.session.query(ChatMessage.user_id).distinct().filter(ChatMessage.sent_at >= yesterday).count()
 
     # Сообщения за сегодня
-    today = datetime.datetime.utcnow().date()
+    today = datetime.datetime.now(datetime.UTC).date()
     messages_today = db.session.query(ChatMessage).filter(func.date(ChatMessage.sent_at) == today).count()
 
     data = {"total_users": total_users, "total_chats": total_chats, "total_messages": total_messages, "active_users": active_users, "messages_today": messages_today}
@@ -214,7 +214,7 @@ def get_user_activity():
 
     # Данные по активности пользователей за последние 7 дней
     days = 7
-    today = datetime.datetime.utcnow().date()
+    today = datetime.datetime.now(datetime.UTC).date()
 
     # Подготавливаем список дат (последние 7 дней)
     date_labels = [(today - datetime.timedelta(days=i)) for i in range(days - 1, -1, -1)]
