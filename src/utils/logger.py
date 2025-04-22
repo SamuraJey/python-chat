@@ -18,6 +18,9 @@ def setup_logger(app: Flask) -> logging.Logger:  # pragma: no cover
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(formatter)
 
+    # Clear existing handlers to prevent duplication
+    app.logger.handlers.clear()
+
     # Add handlers to app logger
     app.logger.addHandler(file_handler)
     app.logger.addHandler(console_handler)
