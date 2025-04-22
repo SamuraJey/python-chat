@@ -6,6 +6,10 @@ from src.database.models.chat_member import ChatMember
 from src.database.models.chat_message import ChatMessage
 from src.database.models.user import User
 
+# TODO To be honest, routes tests are not integration tests. (Even when they use db session)
+# They are more like unit tests, because they test only one route at a time.
+# Need to rearrange tests.
+
 
 @pytest.fixture(scope="function")
 def test_client(session, app):
