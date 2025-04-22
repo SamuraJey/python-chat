@@ -3,36 +3,12 @@
 {% block title %}Chat Selection - Python Chat App{% endblock %}
 
 {% block header %}
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap" rel="stylesheet">
+{% include 'components/header.html' %}
 {% endblock %}
 
 {% block content %}
 <div class="chat-app-container">
-    <div class="chat-sidebar">
-        <div class="app-logo">
-            <i class="fas fa-comments"></i>
-            <a href="{{ url_for('index.index') }}" class="app-logo-text" style="text-decoration: none; color: inherit;">
-                <h1>Python Chat</h1>
-            </a>
-        </div>
-        <div class="user-info">
-            <div class="avatar">{{ current_user.username[0] | upper }}</div>
-            <div class="user-details">
-                <span class="username">{{ current_user.username }}</span>
-                <span class="status online">Online</span>
-            </div>
-        </div>
-        <nav class="sidebar-nav">
-            <a href="{{ url_for('index.index') }}" class="nav-item active">
-                <i class="fas fa-home"></i> Chat List
-            </a>
-            <a href="{{ url_for('auth.logout') }}" class="nav-item">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </a>
-        </nav>
-    </div>
-
+    {% include 'components/sidebar.html' %} 
     <div class="chat-main">
         <div class="chat-header">
             <h2>Available Chats</h2>
@@ -76,7 +52,7 @@
 
 <!-- Модальное окно для создания чата -->
 <div id="create-chat-modal" class="modal">
-    <script src="/static/js/create_chat.js"></script>
+    
     <div class="modal-content">
         <span class="close">&times;</span>
         <h2>Создание нового чата</h2>
@@ -108,4 +84,7 @@
     </div>
 </div>
 
+{% endblock %}
+{% block scripts %}
+<script src="/static/js/create_chat.js"></script>
 {% endblock %}

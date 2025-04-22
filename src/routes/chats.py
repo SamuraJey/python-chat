@@ -137,7 +137,7 @@ def get_user_chats():
 
 @bp.route("/profile")
 @login_required
-def user_profile():
+def profile():
     """Личный кабинет пользователя"""
     # Получаем статистику пользователя
     user_stats = {
