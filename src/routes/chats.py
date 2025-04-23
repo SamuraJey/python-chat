@@ -1,3 +1,4 @@
+from typing import cast
 from flask import Blueprint, abort, current_app, jsonify, render_template, request
 from flask_login import current_user, login_required
 from sqlalchemy import select
@@ -83,7 +84,7 @@ def search_users():
 def create_chat():
     """Создание нового чата"""
     try:
-        data = request.json
+        data = cast(dict, request.get_json())
         chat_name = data.get("name")
         is_group = data.get("is_group", False)
         user_ids = data.get("user_ids", [])
