@@ -4,13 +4,13 @@ from typing import cast
 from sqlalchemy import Boolean, DateTime, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from src.database import BaseModel, db
+from src.database import Base, db
 from src.database.models.chat_member import ChatMember
 from src.database.models.chat_message import ChatMessage
 from src.database.models.user import User
 
 
-class Chat(BaseModel):
+class Chat(Base):
     """Chat model for group and direct messaging."""
 
     __tablename__ = "chats"
@@ -25,7 +25,7 @@ class Chat(BaseModel):
 
     def add_member(self, user: User, is_moderator=False) -> ChatMember:
         """Add a user to this chat."""
-        member = ChatMember(user_id=user.id, chat_id=self.id, is_moderator=is_moderator)
+        member = ChatMember(user_id=user.id, chat_id=self.id, is_moderator=is_moderator)  # noqa
         db.session.add(member)
         db.session.commit()
         return member
@@ -41,7 +41,6 @@ class Chat(BaseModel):
         """Check if a user is a member of this chat."""
         # надо переписать на новый стиль, без легаси query
         return db.session.query(ChatMember).filter_by(user_id=user.id, chat_id=self.id).first() is not None
-        # return ChatMember.query.filter_by(user_id=user.id, chat_id=self.id).first() is not None
 
     def get_members(self) -> list[User]:
         """Get all users in this chat."""

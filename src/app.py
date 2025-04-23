@@ -8,7 +8,6 @@ from src.database import db
 from src.database.models.user import User
 from src.utils.logger import setup_logger
 
-# Create SocketIO instance
 socketio = SocketIO()
 
 
@@ -44,17 +43,18 @@ def create_app(test_config=None) -> Flask:
     def load_user(user_id):
         try:
             user = db.session.get(User, user_id)
-            # user = User.query.get(int(user_id))
             return user
         except Exception as e:
             app.logger.error(f"Error loading user {user_id}: {e}")
             return None
 
-    from src.routes import auth, chats, index
+    from src.routes import admin, auth, chats, index, profile
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(index.bp)
     app.register_blueprint(chats.bp)
+    app.register_blueprint(profile.bp)
+    app.register_blueprint(admin.bp)
 
     # Initialize Socket.IO event handlers
     with app.app_context():

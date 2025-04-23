@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Личный кабинет - Python Chat{% endblock %}
+
+{% block header %}
+{% include 'components/header.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <div class="avatar-container">
+            <div class="avatar-letter">{{ user.username[0] | upper }}</div>
+        </div>
+        <div class="profile-info">
+            <h1>{{ user.username }}</h1>
+            <div class="user-badges">
+                <span class="user-badge {% if user.is_admin %}admin-badge{% else %}user-badge{% endif %}">
+                    <i class="fas fa-{% if user.is_admin %}shield-alt{% else %}user{% endif %}"></i>
+                    {% if user.is_admin %}Администратор{% else %}Пользователь{% endif %}
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-title">
+        <i class="fas fa-chart-pie"></i>
+        <h2>Статистика</h2>
+    </div>
+
+    <div class="profile-details">
+        <div class="profile-stats">
+            <div class="stat-item">
+                <i class="fas fa-comments stat-icon"></i>
+                <span class="stat-label">Участие в чатах</span>
+                <span class="stat-value">{{ stats.chats_count }}</span>
+            </div>
+            <div class="stat-item">
+                <i class="fas fa-comment-dots stat-icon"></i>
+                <span class="stat-label">Отправлено сообщений</span>
+                <span class="stat-value">{{ stats.messages_count }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="section-title">
+        <i class="fas fa-user-cog"></i>
+        <h2>Настройки учётной записи</h2>
+    </div>
+
+    <div class="account-settings">
+        <div class="settings-card">
+            <div class="settings-header">
+                <i class="fas fa-key"></i>
+                <h3>Безопасность</h3>
+            </div>
+            <div class="settings-actions">
+                <button class="btn btn-outline" disabled>Изменить пароль</button>
+                <div class="settings-note">
+                    <i class="fas fa-info-circle"></i>
+                    <span>Функция изменения пароля станет доступна в будущем</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if user.is_admin %}
+    <div class="section-title">
+        <i class="fas fa-tools"></i>
+        <h2>Администрирование</h2>
+    </div>
+
+    <div class="admin-links">
+        <a href="{{ url_for('admin.admin_dashboard') }}" class="btn btn-primary">
+            <i class="fas fa-chart-line"></i> Перейти в панель администратора
+        </a>
+    </div>
+    {% endif %}
+
+    <div class="profile-footer">
+        <a href="{{ url_for('index.index') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Вернуться к списку чатов
+        </a>
+    </div>
+</div>
+{% endblock %}
