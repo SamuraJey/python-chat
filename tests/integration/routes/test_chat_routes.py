@@ -1,6 +1,8 @@
 import json
 from datetime import UTC, datetime, timedelta
 
+from sqlalchemy.orm import Session
+
 from src.database.models.chat import Chat
 from src.database.models.chat_member import ChatMember
 from src.database.models.chat_message import ChatMessage
@@ -47,7 +49,7 @@ class TestChatRoutes:
         assert "messages" in data
         assert len(data["messages"]) == 0
 
-    def test_get_chat_messages_multiple(self, authenticated_client, chat, user, session):
+    def test_get_chat_messages_multiple(self, authenticated_client, chat, user: User, session: Session):
         """Test retrieving multiple messages in chronological order."""
         # Create messages with different timestamps
         msg1 = ChatMessage(user_id=user.id, chat_id=chat.id, content="First message")
@@ -79,7 +81,7 @@ class TestChatRoutes:
         print(response.data)
         assert response.status_code in [404, 500]  # Either not found or server error is acceptable
 
-    def test_get_chat_messages_different_users(self, authenticated_client, chat, session):
+    def test_get_chat_messages_different_users(self, authenticated_client, chat, session: Session):
         """Test retrieving messages from different users."""
         # Create another user
         user2 = User(username="seconduser")
@@ -106,7 +108,7 @@ class TestChatRoutes:
 
         assert found, "Couldn't find message from second user"
 
-    def test_get_chat_messages_from_deleted_user(self, authenticated_client, chat, session):
+    def test_get_chat_messages_from_deleted_user(self, authenticated_client, chat, session: Session):
         """Test retrieving messages from users that have been deleted."""
         # Create a user that we'll delete
         deleted_user = User(username="usertodelete")
@@ -139,6 +141,65 @@ class TestChatRoutes:
 
         assert found_deleted_message, "Message from deleted user was not found in API response"
 
+    def test_get_chat_members(self, authenticated_client, chat_member, chat, user: User, session: Session):
+        """Test getting list of chat members."""
+        # Add another member to the chat
+        second_user = User(username="memberuser")
+        second_user.set_password("password123")
+        session.add(second_user)
+        session.flush()
+
+        new_chat_member = ChatMember(chat_id=chat.id, user_id=second_user.id, is_moderator=False)
+        session.add(new_chat_member)
+        session.commit()
+
+        response = authenticated_client.get(f"/api/chat/{chat.id}/members")
+        assert response.status_code == 200
+
+        data = json.loads(response.data)
+        assert "members" in data
+        assert len(data["members"]) >= 2  # At least the two users we know about
+
+        # Check if both users are in the members list
+        usernames = [member["username"] for member in data["members"]]
+        assert user.username in usernames
+        assert "memberuser" in usernames
+
+    def test_get_chat_members_unauthenticated(self, test_client, chat):
+        """Test that unauthenticated users can't access chat members."""
+        response = test_client.get(f"/api/chat/{chat.id}/members")
+        assert response.status_code == 302  # Should redirect to login
+        assert "/login" in response.location
+
+    def test_get_chat_members_unauthorized(self, authenticated_client, session: Session):
+        """Test that users can't access members of chats they're not in."""
+        # Create a chat the authenticated user is not part of
+        unauthorized_chat = Chat(name="Unauthorized Chat", is_group=True)
+        session.add(unauthorized_chat)
+        session.flush()
+
+        # Add some other user to the chat
+        other_user = User(username="otheruser")
+        other_user.set_password("password123")
+        session.add(other_user)
+        session.flush()
+
+        chat_member = ChatMember(chat_id=unauthorized_chat.id, user_id=other_user.id, is_moderator=True)
+        session.add(chat_member)
+        session.commit()
+
+        response = authenticated_client.get(f"/api/chat/{unauthorized_chat.id}/members")
+        assert response.status_code == 403  # Forbidden
+
+        data = json.loads(response.data)
+        assert "error" in data
+        assert "not a member" in data["error"].lower()
+
+    def test_get_chat_members_nonexistent_chat(self, authenticated_client):
+        """Test accessing members for a non-existent chat."""
+        response = authenticated_client.get("/api/chat/9999/members")
+        assert response.status_code == 404  # Not Found
+
     def test_search_users_empty_query(self, authenticated_client):
         """Test searching users with empty query."""
         response = authenticated_client.get("/api/search-users?query=")
@@ -157,7 +218,7 @@ class TestChatRoutes:
         assert "users" in data
         assert len(data["users"]) == 0
 
-    def test_search_users_valid_query(self, authenticated_client, session):
+    def test_search_users_valid_query(self, authenticated_client, session: Session):
         """Test searching users with valid query."""
         # Create another user that should be found
         second_user = User(username="testuser2")

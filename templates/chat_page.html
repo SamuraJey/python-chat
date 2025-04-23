@@ -15,7 +15,7 @@
         <div class="chat-header">
             <h2>{{ chat.name }}</h2>
             <div class="chat-actions">
-                <button id="toggle-users" title="Show Online Users">
+                <button id="toggle-users" title="Show Chat Members">
                     <i class="fas fa-users"></i>
                 </button>
             </div>
@@ -30,6 +30,18 @@
             <button id="send-button">
                 <i class="fas fa-paper-plane"></i>
             </button>
+        </div>
+    </div>
+
+    <!-- Панель участников чата -->
+    <div class="chat-members-panel" id="members-panel">
+        <div class="chat-members-header">
+            <h3>Chat Members</h3>
+            <button id="close-members-panel">×</button>
+        </div>
+        <div class="chat-members-list" id="members-list">
+            <!-- Здесь будут отображаться участники чата -->
+            <div class="loading-spinner">Loading members...</div>
         </div>
     </div>
 </div>
