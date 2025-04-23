@@ -20,7 +20,6 @@ class RegistrationForm(FlaskForm):
     submit = SubmitField("Register")
 
     def validate_username(self, username):
-        # user = User.query.filter_by(username=username.data).first()
         user = db.session.query(User).filter_by(username=username.data).first()
         if user:
             raise ValidationError("Username is already taken. Please choose a different one.")

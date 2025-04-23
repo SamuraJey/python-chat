@@ -1,5 +1,7 @@
+from typing import cast
 from flask import Blueprint, abort, current_app, jsonify, render_template, request
 from flask_login import current_user, login_required
+from sqlalchemy import select
 from werkzeug.exceptions import HTTPException
 
 from src.database import db
@@ -18,7 +20,7 @@ def chat_page(chat_id):
     logger = current_app.logger
     try:
         chat = db.get_or_404(Chat, chat_id)
-        # chat = Chat.query.get_or_404(chat_id)
+
         logger.debug(f"User {current_user.username} accessing chat {chat_id}")
         return render_template("chat_page.html", chat=chat)
     except HTTPException as e:
@@ -36,7 +38,8 @@ def get_chat_messages(chat_id):
     try:
         chat = db.get_or_404(Chat, chat_id)
         # Используем left join чтобы включить сообщения удаленных пользователей
-        messages = db.session.query(ChatMessage, User.username).outerjoin(User, ChatMessage.user_id == User.id).filter(ChatMessage.chat_id == chat_id).order_by(ChatMessage.sent_at).all()
+        stmt = select(ChatMessage, User.username).outerjoin(User, ChatMessage.user_id == User.id).filter(ChatMessage.chat_id == chat_id).order_by(ChatMessage.sent_at)
+        messages = db.session.execute(stmt).all()
         # Format messages for JSON response
         formatted_messages = [
             {
@@ -67,7 +70,8 @@ def search_users():
             return jsonify({"users": []})
 
         # Поиск пользователей по имени (исключая текущего пользователя)
-        users = User.query.filter(User.username.ilike(f"%{query}%"), User.id != current_user.id).limit(10).all()
+        stmt = select(User).filter(User.username.ilike(f"%{query}%"), User.id != current_user.id).limit(10)
+        users = db.session.execute(stmt).scalars().all()
 
         return jsonify({"users": [{"id": user.id, "username": user.username} for user in users]})
     except Exception as e:
@@ -80,7 +84,7 @@ def search_users():
 def create_chat():
     """Создание нового чата"""
     try:
-        data = request.json
+        data = cast(dict, request.get_json())
         chat_name = data.get("name")
         is_group = data.get("is_group", False)
         user_ids = data.get("user_ids", [])
@@ -104,7 +108,7 @@ def create_chat():
         # Добавляем остальных участников
         for user_id in user_ids:
             # Проверяем, что пользователь существует
-            user = User.query.get(user_id)
+            user = db.session.get(User, user_id)
             if user:
                 member = ChatMember(chat_id=new_chat.id, user_id=user_id, is_moderator=False)
                 db.session.add(member)
@@ -124,9 +128,11 @@ def get_user_chats():
     """Получить список чатов текущего пользователя"""
     try:
         # Получаем чаты, в которых пользователь является участником
-        chats = Chat.query.join(ChatMember, Chat.id == ChatMember.chat_id).filter(ChatMember.user_id == current_user.id).all()
+        stmt = select(Chat).join(ChatMember).filter(ChatMember.user_id == current_user.id)
+        chats = db.session.execute(stmt).scalars().all()
 
         return jsonify({"chats": [{"id": chat.id, "name": chat.name, "is_group": chat.is_group} for chat in chats]})
     except Exception as e:
         current_app.logger.error(f"Error retrieving user chats: {e}")
+
         return jsonify({"error": "Failed to retrieve chats"}), 500

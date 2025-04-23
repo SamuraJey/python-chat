@@ -6,7 +6,7 @@ from logging.handlers import RotatingFileHandler
 from flask import Flask
 
 
-def setup_logger(app: Flask) -> logging.Logger:
+def setup_logger(app: Flask) -> logging.Logger:  # pragma: no cover
     if not os.path.exists("../../logs"):
         os.makedirs("../../logs")
 
@@ -17,6 +17,9 @@ def setup_logger(app: Flask) -> logging.Logger:
 
     console_handler = logging.StreamHandler(sys.stdout)
     console_handler.setFormatter(formatter)
+
+    # Clear existing handlers to prevent duplication
+    app.logger.handlers.clear()
 
     # Add handlers to app logger
     app.logger.addHandler(file_handler)
