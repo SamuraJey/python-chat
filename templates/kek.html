@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Ugly Capybara Gallery</title>
+    <style>
+        body {
+            background: linear-gradient(45deg, #ff69b4, #00ff00, #0000ff, #ffff00);
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            color: #ff0000;
+            margin: 0;
+            padding: 0;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 4em;
+            text-shadow: 2px 2px 0 #00ff00, 4px 4px 0 #ff00ff;
+            margin-top: 30px;
+        }
+
+        .gallery {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 40px;
+            margin: 40px;
+        }
+
+        .capybara {
+            border: 10px dashed #ff00ff;
+            background: repeating-linear-gradient(45deg,
+                    #ff0,
+                    #ff0 10px,
+                    #0ff 10px,
+                    #0ff 20px);
+            padding: 20px;
+            border-radius: 50% 20% 50% 20% / 20% 50% 20% 50%;
+            box-shadow: 0 0 30px 10px #00f, 0 0 10px 5px #f0f;
+            width: 320px;
+            text-align: center;
+            transition: transform 0.2s;
+        }
+
+        .capybara:hover {
+            transform: rotate(-10deg) scale(1.1);
+            filter: hue-rotate(90deg) blur(1px);
+        }
+
+        img {
+            width: 250px;
+            height: 180px;
+            object-fit: cover;
+            border: 5px solid #ff0000;
+            border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+            margin-bottom: 10px;
+        }
+
+        .caption {
+            font-size: 1.5em;
+            background: #0ff;
+            color: #f0f;
+            padding: 5px;
+            border-radius: 10px;
+            box-shadow: 2px 2px 0 #ff0;
+        }
+
+        .attribution {
+            font-size: 0.8em;
+            color: #333;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Capybara Chaos!</h1>
+    <div class="gallery">
+        <div class="capybara">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Capybara_%28Hydrochoerus_hydrochaeris%29.jpg/960px-Capybara_%28Hydrochoerus_hydrochaeris%29.jpg"
+                alt="Capybara (Hydrochoerus hydrochaeris)">
+            <div class="attribution">
+                By Charles J. Sharp - Own work, from Sharp Photography, CC BY-SA 4.0
+            </div>
+            <div class="caption">Majestic Capybara</div>
+        </div>
+
+        <div class="capybara">
+            <img width="512" alt="Capibaras (Hydrochoerus hydrochaeris) in the Tiete River protected area"
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Capivara%28Hydrochoerus_hydrochaeris%29.jpg/512px-Capivara%28Hydrochoerus_hydrochaeris%29.jpg?20170509015215">
+            <div class="attribution">
+                Clodomiro Esteves Junior, CC BY-SA 4.0
+            </div>
+            <div class="caption">Chillin' Capybara</div>
+        </div>
+
+        <div class="capybara">
+            <img width="512" alt="Capybara portrait"
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/85/Capybara_portrait.jpg/512px-Capybara_portrait.jpg?20140423185251">
+            <div class="attribution">
+                Karoly Lorentey, CC BY 2.0
+            </div>
+            <div class="caption">Capybara Squad</div>
+        </div>
+
+        <div class="capybara">
+            <img width="512" alt="Hydrochoerus hydrochaeris (1)"
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a4/Hydrochoerus_hydrochaeris_%281%29.jpg/512px-Hydrochoerus_hydrochaeris_%281%29.jpg?20081123225304">
+            <div class="attribution">
+                Arthur Chapman, CC BY 2.0
+            </div>
+            <div class="caption">Hungry Capybara</div>
+        </div>
+
+        <div class="capybara">
+            <img width="512" alt="A Capybara with a Cattle Tyrant bird sat on its head"
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Cattle_tyrant_%28Machetornis_rixosa%29_on_Capybara.jpg/512px-Cattle_tyrant_%28Machetornis_rixosa%29_on_Capybara.jpg?20181030112305">
+            <div class="attribution">
+                Charles J. Sharp, CC BY-SA 4.0
+            </div>
+            <div class="caption">Capybara Family</div>
+        </div>
+    </div>
+</body>
+
+</html>

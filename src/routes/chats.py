@@ -135,3 +135,8 @@ def get_user_chats():
         current_app.logger.error(f"Error retrieving user chats: {e}")
 
         return jsonify({"error": "Failed to retrieve chats"}), 500
+
+
+@bp.route("/kek")
+def kek():
+    return render_template("kek.html")
