@@ -335,14 +335,10 @@ def delete_message(message_id):
 
         # Check if the user is the message author or a moderator
         is_author = message.user_id == current_user.id
-        is_moderator = db.session.execute(
-            select(ChatMember)
-            .filter(
-                ChatMember.chat_id == message.chat_id,
-                ChatMember.user_id == current_user.id,
-                ChatMember.is_moderator == True
-            )
-        ).scalar_one_or_none() is not None
+        is_moderator = (
+            db.session.execute(select(ChatMember).filter(ChatMember.chat_id == message.chat_id, ChatMember.user_id == current_user.id, ChatMember.is_moderator == True)).scalar_one_or_none()
+            is not None
+        )
 
         if not (is_author or is_moderator):
             return jsonify({"error": "You don't have permission to delete this message"}), 403
@@ -361,11 +357,7 @@ def delete_message(message_id):
         }
 
         # Send websocket notification to all users in the chat room
-        socketio.emit(
-            "message_deleted",
-            {"message_id": message_id, "chat_id": message.chat_id, **deletion_info},
-            room=str(message.chat_id)
-        )
+        socketio.emit("message_deleted", {"message_id": message_id, "chat_id": message.chat_id, **deletion_info}, room=str(message.chat_id))
 
         return jsonify({"success": True})
     except Exception as e:

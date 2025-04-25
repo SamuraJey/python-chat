@@ -1,13 +1,13 @@
 import json
 from datetime import UTC, datetime, timedelta
 
+import pytest
 from sqlalchemy.orm import Session
 
 from src.database.models.chat import Chat
 from src.database.models.chat_member import ChatMember
 from src.database.models.chat_message import ChatMessage
 from src.database.models.user import User
-import pytest
 
 
 class TestChatRoutes:
@@ -929,34 +929,27 @@ class TestChatRoutes:
         chat = Chat(name="Delete Message Test Chat", is_group=True)
         session.add(chat)
         session.flush()
-        
+
         # Add user to chat
         chat_member = ChatMember(chat_id=chat.id, user_id=user.id)
         session.add(chat_member)
         session.flush()
-        
+
         # Create a message from the user
         message = ChatMessage(chat_id=chat.id, user_id=user.id, content="Message to delete")
         session.add(message)
         session.commit()
-        
+
         # Log in as the user
-        test_client.post(
-            "/login",
-            data={"username": user.username, "password": "password123"},
-            follow_redirects=True
-        )
-        
+        test_client.post("/login", data={"username": user.username, "password": "password123"}, follow_redirects=True)
+
         # Delete user's own message
-        response = test_client.post(
-            f"/api/message/{message.id}/delete",
-            headers={"Content-Type": "application/json"}
-        )
-        
+        response = test_client.post(f"/api/message/{message.id}/delete", headers={"Content-Type": "application/json"})
+
         assert response.status_code == 200
         data = json.loads(response.data)
         assert data["success"] == True
-        
+
         # Verify the message was deleted from the database
         deleted_message = session.query(ChatMessage).get(message.id)
         assert deleted_message is None
@@ -967,41 +960,34 @@ class TestChatRoutes:
         chat = Chat(name="Delete Message Test Chat", is_group=True)
         session.add(chat)
         session.flush()
-        
+
         # Create another user
         other_user = User(username="other_user")
         other_user.set_password("password123")
         session.add(other_user)
         session.flush()
-        
+
         # Add both users to chat
         chat_member1 = ChatMember(chat_id=chat.id, user_id=user.id)
         chat_member2 = ChatMember(chat_id=chat.id, user_id=other_user.id)
         session.add_all([chat_member1, chat_member2])
         session.flush()
-        
+
         # Create a message from the other user
         other_message = ChatMessage(chat_id=chat.id, user_id=other_user.id, content="Other user's message")
         session.add(other_message)
         session.commit()
-        
+
         # Log in as the regular user
-        test_client.post(
-            "/login",
-            data={"username": user.username, "password": "password123"},
-            follow_redirects=True
-        )
-        
+        test_client.post("/login", data={"username": user.username, "password": "password123"}, follow_redirects=True)
+
         # Attempt to delete other user's message
-        response = test_client.post(
-            f"/api/message/{other_message.id}/delete",
-            headers={"Content-Type": "application/json"}
-        )
-        
+        response = test_client.post(f"/api/message/{other_message.id}/delete", headers={"Content-Type": "application/json"})
+
         assert response.status_code == 403
         data = json.loads(response.data)
         assert "error" in data
-        
+
         # Verify the message still exists in the database
         message_exists = session.query(ChatMessage).get(other_message.id)
         assert message_exists is not None
@@ -1012,41 +998,34 @@ class TestChatRoutes:
         chat = Chat(name="Moderator Delete Test Chat", is_group=True)
         session.add(chat)
         session.flush()
-        
+
         # Create another user
         other_user = User(username="message_author")
         other_user.set_password("password123")
         session.add(other_user)
         session.flush()
-        
+
         # Add users to chat - make first user a moderator
         mod_member = ChatMember(chat_id=chat.id, user_id=user.id, is_moderator=True)
         regular_member = ChatMember(chat_id=chat.id, user_id=other_user.id)
         session.add_all([mod_member, regular_member])
         session.flush()
-        
+
         # Create a message from the other user
         other_message = ChatMessage(chat_id=chat.id, user_id=other_user.id, content="Message to be deleted by mod")
         session.add(other_message)
         session.commit()
-        
+
         # Log in as the moderator
-        test_client.post(
-            "/login",
-            data={"username": user.username, "password": "password123"},
-            follow_redirects=True
-        )
-        
+        test_client.post("/login", data={"username": user.username, "password": "password123"}, follow_redirects=True)
+
         # Delete the other user's message
-        response = test_client.post(
-            f"/api/message/{other_message.id}/delete",
-            headers={"Content-Type": "application/json"}
-        )
-        
+        response = test_client.post(f"/api/message/{other_message.id}/delete", headers={"Content-Type": "application/json"})
+
         assert response.status_code == 200
         data = json.loads(response.data)
         assert data["success"] == True
-        
+
         # Verify the message was deleted from the database
         deleted_message = session.query(ChatMessage).get(other_message.id)
         assert deleted_message is None
@@ -1056,12 +1035,9 @@ class TestChatRoutes:
         """Test that attempting to delete a non-existent message returns 404."""
         # Choose a message ID that doesn't exist
         non_existent_id = 99999
-        
-        response = authenticated_client.post(
-            f"/api/message/{non_existent_id}/delete",
-            headers={"Content-Type": "application/json"}
-        )
-        
+
+        response = authenticated_client.post(f"/api/message/{non_existent_id}/delete", headers={"Content-Type": "application/json"})
+
         assert response.status_code == 404
 
     def test_delete_message_unauthenticated(self, test_client, session):
@@ -1070,35 +1046,32 @@ class TestChatRoutes:
         chat = Chat(name="Unauthenticated Test", is_group=True)
         session.add(chat)
         session.flush()
-        
+
         user = User(username="message_owner")
         user.set_password("password123")
         session.add(user)
         session.flush()
-        
+
         # Add user to chat
         chat_member = ChatMember(chat_id=chat.id, user_id=user.id)
         session.add(chat_member)
         session.flush()
-        
+
         # Create a message
         message = ChatMessage(chat_id=chat.id, user_id=user.id, content="Test message")
         session.add(message)
         session.commit()
-        
+
         # Ensure user is not logged in
         test_client.get("/logout")
-        
+
         # Attempt to delete the message without authentication
-        response = test_client.post(
-            f"/api/message/{message.id}/delete",
-            headers={"Content-Type": "application/json"}
-        )
-        
+        response = test_client.post(f"/api/message/{message.id}/delete", headers={"Content-Type": "application/json"})
+
         # Should redirect to login
         assert response.status_code == 302
         assert "/login" in response.location
-        
+
         # Verify message still exists
         message_exists = session.query(ChatMessage).get(message.id)
         assert message_exists is not None
