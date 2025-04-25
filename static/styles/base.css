@@ -21,7 +21,6 @@ body {
     background-color: var(--bg-color);
     color: var(--text-color);
     min-height: 100vh;
-    min-height: 100vh;
 }
 
 /* Chat App Layout */

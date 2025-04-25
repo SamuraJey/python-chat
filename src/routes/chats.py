@@ -41,8 +41,6 @@ def get_chat_messages(chat_id):
         # Используем left join чтобы включить сообщения удаленных пользователей
         stmt = select(ChatMessage, User.username).outerjoin(User, ChatMessage.user_id == User.id).filter(ChatMessage.chat_id == chat_id).order_by(ChatMessage.sent_at)
         messages = db.session.execute(stmt).all()
-        stmt = select(ChatMessage, User.username).outerjoin(User, ChatMessage.user_id == User.id).filter(ChatMessage.chat_id == chat_id).order_by(ChatMessage.sent_at)
-        messages = db.session.execute(stmt).all()
         # Format messages for JSON response
         formatted_messages = [
             {
@@ -133,7 +131,7 @@ def search_users():
 def create_chat():
     """Создание нового чата"""
     try:
-        data = request.json
+        data = cast(dict, request.get_json())
         chat_name = data.get("name")
         is_group = data.get("is_group", False)
         user_ids = data.get("user_ids", [])
