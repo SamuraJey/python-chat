@@ -86,6 +86,11 @@ messageInput.addEventListener("keypress", (e) => {
     if (e.key === "Enter") sendMessage();
 });
 
+socket.on("set_username", (data) => {
+    if (data.username) {
+        currentUsername = data.username;
+    }
+});
 
 
 function sendMessage() {
