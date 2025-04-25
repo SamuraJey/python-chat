@@ -63,6 +63,22 @@ def init_socketio(socketio):
         user_room = users[request.sid].get("chat_id")
         current_app.logger.debug(f"Message in chat {chat_id} from {user['username']} (currently in room {user_room}): {message[:20]}...")
 
+        # Проверка, не забанен ли пользователь в чате
+        try:
+            from sqlalchemy import select
+
+            from src.database.models.chat_member import ChatMember
+
+            # Проверяем, забанен ли пользователь
+            banned_check = db.session.execute(select(ChatMember).filter(ChatMember.chat_id == chat_id, ChatMember.user_id == user["user_id"], ChatMember.is_banned == True)).scalar_one_or_none()
+
+            if banned_check:
+                current_app.logger.warning(f"Banned user {user['username']} attempted to send message to chat {chat_id}")
+                emit("error", {"message": "You are banned from this chat", "chat_id": chat_id})
+                return
+        except Exception as e:
+            current_app.logger.error(f"Error checking ban status: {e}")
+
         try:
             # Save the message to database
             message_obj = ChatMessage(
@@ -108,6 +124,30 @@ def init_socketio(socketio):
         if not chat_id:
             current_app.logger.warning(f"Join attempt without chat_id from {user['username']}")
             return
+
+        # Check if user is banned from this chat
+        try:
+            from sqlalchemy import select
+
+            from src.database.models.chat_member import ChatMember
+
+            # Check if the user exists in the chat member list and is banned
+            banned_check = db.session.execute(select(ChatMember).filter(ChatMember.chat_id == chat_id, ChatMember.user_id == user["user_id"], ChatMember.is_banned == True)).scalar_one_or_none()
+
+            if banned_check:
+                current_app.logger.warning(f"Banned user {user['username']} attempted to join chat {chat_id}")
+                emit("error", {"message": "You are banned from this chat", "chat_id": chat_id})
+                return
+
+            # Check if the user is a member of this chat
+            member_check = db.session.execute(select(ChatMember).filter(ChatMember.chat_id == chat_id, ChatMember.user_id == user["user_id"])).scalar_one_or_none()
+
+            if not member_check:
+                current_app.logger.warning(f"Non-member {user['username']} attempted to join chat {chat_id}")
+                emit("error", {"message": "You are not a member of this chat", "chat_id": chat_id})
+                return
+        except Exception as e:
+            current_app.logger.error(f"Error checking ban status: {e}")
 
         # Store chat ID in user data
         users[request.sid]["chat_id"] = chat_id

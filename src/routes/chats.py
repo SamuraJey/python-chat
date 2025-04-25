@@ -76,7 +76,8 @@ def get_chat_members(chat_id):
             return jsonify({"error": "You are not a member of this chat"}), 403
 
         # Получаем всех участников чата с информацией о пользователе
-        stmt = select(User.id, User.username, ChatMember.is_moderator).join(ChatMember, User.id == ChatMember.user_id).filter(ChatMember.chat_id == chat_id)
+        # Исключаем забаненных пользователей из списка
+        stmt = select(User.id, User.username, ChatMember.is_moderator).join(ChatMember, User.id == ChatMember.user_id).filter(ChatMember.chat_id == chat_id, ChatMember.is_banned == False)
 
         members = db.session.execute(stmt).all()
 
@@ -170,5 +171,152 @@ def create_chat():
 
 
 @bp.route("/kek")
-def kek():
+def kek():  # pragma: no cover
     return render_template("kek.html")
+
+
+@bp.route("/api/chat/<int:chat_id>/ban", methods=["POST"])
+@login_required
+def ban_chat_user(chat_id):
+    """Ban a user from a chat (moderator only)"""
+    try:
+        chat = db.get_or_404(Chat, chat_id)
+
+        # Check if current user is a moderator
+        moderator_check = db.session.execute(select(ChatMember).filter(ChatMember.chat_id == chat_id, ChatMember.user_id == current_user.id, ChatMember.is_moderator == True)).scalar_one_or_none()
+
+        if not moderator_check:
+            return jsonify({"error": "You are not a moderator of this chat"}), 403
+
+        # Get user to ban
+        data = request.get_json()
+        user_id = data.get("user_id")
+        reason = data.get("reason", "No reason provided")
+
+        if not user_id:
+            return jsonify({"error": "User ID is required"}), 400
+
+        # Can't ban yourself
+        if int(user_id) == current_user.id:
+            return jsonify({"error": "You cannot ban yourself"}), 400
+
+        # Check if the user to ban is also a moderator
+        target_user = db.session.get(User, user_id)
+        if not target_user:
+            return jsonify({"error": "User not found"}), 404
+
+        target_member = db.session.execute(select(ChatMember).filter(ChatMember.chat_id == chat_id, ChatMember.user_id == user_id)).scalar_one_or_none()
+
+        if not target_member:
+            return jsonify({"error": "User is not a member of this chat"}), 400
+
+        if target_member.is_moderator:
+            return jsonify({"error": "Cannot ban a moderator"}), 400
+
+        # Ban the user
+        chat.ban_member(target_user, reason)
+
+        # Получаем socket ID пользователя, чтобы принудительно удалить его из комнаты
+        from src.app import socketio
+        from src.routes.events import users
+
+        # Найдем все активные соединения этого пользователя
+        user_socket_ids = [sid for sid, user_data in users.items() if user_data.get("user_id") == int(user_id)]
+
+        # Отправляем уведомление о бане на все соединения пользователя
+        for socket_id in user_socket_ids:
+            # Отправляем уведомление о бане
+            socketio.emit("banned_from_chat", {"chat_id": chat_id, "chat_name": chat.name}, room=socket_id)
+
+            # Принудительно исключаем пользователя из комнаты чата
+            room_name = str(chat_id)
+            socketio.server.leave_room(socket_id, room_name)
+
+            # Удалить чат из текущего чата пользователя
+            if users.get(socket_id) and users[socket_id].get("chat_id") == chat_id:
+                users[socket_id].pop("chat_id", None)
+
+        # Отправляем уведомление всем в чате о бане пользователя
+        room_name = str(chat_id)
+        socketio.emit("user_banned", {"username": target_user.username, "banned_by": current_user.username}, room=room_name)
+
+        return jsonify({"success": True, "message": f"User {target_user.username} has been banned from the chat"})
+    except Exception as e:
+        current_app.logger.error(f"Error banning user from chat: {e}")
+        return jsonify({"error": "Failed to ban user"}), 500
+
+
+@bp.route("/api/chat/<int:chat_id>/unban", methods=["POST"])
+@login_required
+def unban_chat_user(chat_id):
+    """Unban a user from a chat (moderator only)"""
+    try:
+        chat = db.get_or_404(Chat, chat_id)
+
+        # Check if current user is a moderator
+        moderator_check = db.session.execute(select(ChatMember).filter(ChatMember.chat_id == chat_id, ChatMember.user_id == current_user.id, ChatMember.is_moderator == True)).scalar_one_or_none()
+
+        if not moderator_check:
+            return jsonify({"error": "You are not a moderator of this chat"}), 403
+
+        # Get user to unban
+        data = request.get_json()
+        user_id = data.get("user_id")
+
+        if not user_id:
+            return jsonify({"error": "User ID is required"}), 400
+
+        # Check if user exists
+        target_user = db.session.get(User, user_id)
+        if not target_user:
+            return jsonify({"error": "User not found"}), 404
+
+        # Check if user is banned
+        target_member = db.session.execute(select(ChatMember).filter(ChatMember.chat_id == chat_id, ChatMember.user_id == user_id, ChatMember.is_banned == True)).scalar_one_or_none()
+
+        if not target_member:
+            return jsonify({"error": "User is not banned from this chat"}), 400
+
+        # Unban the user
+        chat.unban_member(target_user)
+
+        # Отправляем уведомление всем в чате о разбане пользователя
+        from src.app import socketio
+
+        room_name = str(chat_id)
+        socketio.emit("user_unbanned", {"username": target_user.username, "unbanned_by": current_user.username}, room=room_name)
+
+        return jsonify({"success": True, "message": f"User {target_user.username} has been unbanned from the chat"})
+    except Exception as e:
+        current_app.logger.error(f"Error unbanning user from chat: {e}")
+        return jsonify({"error": "Failed to unban user"}), 500
+
+
+@bp.route("/api/chat/<int:chat_id>/banned")
+@login_required
+def get_banned_users(chat_id):
+    """Get list of banned users in a chat (moderator only)"""
+    try:
+        chat = db.get_or_404(Chat, chat_id)
+
+        # Check if current user is a moderator
+        moderator_check = db.session.execute(select(ChatMember).filter(ChatMember.chat_id == chat_id, ChatMember.user_id == current_user.id, ChatMember.is_moderator == True)).scalar_one_or_none()
+
+        if not moderator_check:
+            return jsonify({"error": "You are not a moderator of this chat"}), 403
+
+        # Get banned users with ban details
+        banned_members = db.session.execute(
+            select(User.id, User.username, ChatMember.banned_at, ChatMember.banned_reason)
+            .join(ChatMember, User.id == ChatMember.user_id)
+            .filter(ChatMember.chat_id == chat_id, ChatMember.is_banned == True)
+        ).all()
+
+        formatted_banned = [
+            {"id": member.id, "username": member.username, "banned_at": member.banned_at.isoformat() if member.banned_at else None, "reason": member.banned_reason} for member in banned_members
+        ]
+
+        return jsonify({"banned_users": formatted_banned})
+    except Exception as e:
+        current_app.logger.error(f"Error getting banned users: {e}")
+        return jsonify({"error": "Failed to get banned users"}), 500
