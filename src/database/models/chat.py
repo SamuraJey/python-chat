@@ -37,14 +37,46 @@ class Chat(Base):
             db.session.delete(member)
             db.session.commit()
 
+    def ban_member(self, user: User, reason=None) -> None:
+        """Ban a user from this chat."""
+        member = db.session.query(ChatMember).filter_by(user_id=user.id, chat_id=self.id).first()
+        if member:
+            member.ban(reason)
+            db.session.commit()
+            return True
+        return False
+
+    def unban_member(self, user: User) -> None:
+        """Unban a user from this chat."""
+        member = db.session.query(ChatMember).filter_by(user_id=user.id, chat_id=self.id).first()
+        if member:
+            member.unban()
+            db.session.commit()
+            return True
+        return False
+
     def is_member(self, user: User) -> bool:
         """Check if a user is a member of this chat."""
         # надо переписать на новый стиль, без легаси query
-        return db.session.query(ChatMember).filter_by(user_id=user.id, chat_id=self.id).first() is not None
+        member = db.session.query(ChatMember).filter_by(user_id=user.id, chat_id=self.id).first()
+        return member is not None and not member.is_banned
+
+    def is_banned(self, user: User) -> bool:
+        """Check if a user is banned from this chat."""
+        member = db.session.query(ChatMember).filter_by(user_id=user.id, chat_id=self.id).first()
+        return member is not None and member.is_banned
 
     def get_members(self) -> list[User]:
         """Get all users in this chat."""
-        return cast(list[User], [member.user for member in self.members])
+        return cast(list[User], [member.user for member in self.members if not member.is_banned])
+
+    def get_banned_members(self) -> list[tuple[User, datetime, str]]:
+        """Get all banned users in this chat with ban details."""
+        banned_members = []
+        for member in self.members:
+            if member.is_banned:
+                banned_members.append((member.user, member.banned_at, member.banned_reason))
+        return banned_members
 
     def get_moderators(self) -> list[User]:
         """Get all moderators in this chat."""
