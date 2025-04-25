@@ -22,7 +22,7 @@ function loadPreviousMessages(chatId) {
         .then(response => response.json())
         .then(data => {
             data.messages.forEach(msg => {
-                addMessage(msg.content, "user", msg.username);
+                addMessage(msg.content, "user", msg.username, msg.id);
             });
         })
         .catch(error => console.error('Error loading messages:', error));
@@ -48,8 +48,34 @@ function joinChatRoom() {
     // Add this debug line to confirm joining worked
     socket.on('joined_chat', (data) => {
         console.log('Successfully joined chat room:', data.chat_id);
-        loadPreviousMessages(chatId);
+
+        // Check if user is a moderator first, then load messages
+        checkModeratorStatus().then(() => {
+            loadPreviousMessages(chatId);
+        });
     });
+}
+
+// Function to check if the current user is a moderator
+function checkModeratorStatus() {
+    return fetch(`/api/chat/${chatId}/members`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error('Error checking moderator status:', data.error);
+                return;
+            }
+
+            if (data.members && data.members.length > 0) {
+                // Check if current user is a moderator
+                const currentUser = data.members.find(member => member.username === currentUsername);
+                isModerator = currentUser && currentUser.is_moderator;
+                console.log('Moderator status:', isModerator);
+            }
+        })
+        .catch(error => {
+            console.error('Error checking moderator status:', error);
+        });
 }
 
 // Handle errors, including ban notifications
@@ -112,7 +138,7 @@ socket.on("receive_message", (data) => {
     // Check if we've already displayed this message
     if (!displayedMessages.has(messageId)) {
         displayedMessages.add(messageId);
-        addMessage(data.message, "user", data.username);
+        addMessage(data.message, "user", data.username, data.message_id);
     } else {
         console.log("Skipping duplicate message:", messageId);
     }
@@ -154,10 +180,14 @@ function updateUsername() {
     }
 }
 
-// Update your addMessage function to match our new styling
-function addMessage(message, type, username = "") {
+// Update your addMessage function to include message ID and delete button
+function addMessage(message, type, username = "", messageId = null) {
     const messageElement = document.createElement("div");
     messageElement.className = "message";
+
+    if (messageId) {
+        messageElement.dataset.messageId = messageId;
+    }
 
     if (type === "user") {
         const isSentMessage = username === currentUsername;
@@ -178,14 +208,88 @@ function addMessage(message, type, username = "") {
         messageText.textContent = message;
         contentDiv.appendChild(messageText);
 
+        const messageActions = document.createElement("div");
+        messageActions.className = "message-actions";
+
+        // Add delete button if user is author or moderator
+        if ((isSentMessage || isModerator) && messageId) {
+            const deleteButton = document.createElement("button");
+            deleteButton.className = "message-delete-btn";
+            deleteButton.innerHTML = '<i class="fas fa-trash"></i>';
+            deleteButton.title = "Delete message";
+            deleteButton.onclick = () => deleteMessage(messageId);
+            messageActions.appendChild(deleteButton);
+        }
+
+        contentDiv.appendChild(messageActions);
         messageElement.appendChild(contentDiv);
+    } else if (type === "deleted") {
+        messageElement.className = "message system-message deleted-message";
+        messageElement.innerHTML = `<i class="fas fa-ban"></i> ${message}`;
     } else {
         messageElement.className = "system-message";
         messageElement.textContent = message;
     }
+
     chatMessages.appendChild(messageElement);
     chatMessages.scrollTop = chatMessages.scrollHeight;
+    return messageElement;
 }
+
+// Function to delete a message
+function deleteMessage(messageId) {
+    if (!confirm("Are you sure you want to delete this message?")) {
+        return;
+    }
+
+    fetch(`/api/message/${messageId}/delete`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Immediately remove the message from UI
+                const messageElement = document.querySelector(`.message[data-message-id="${messageId}"]`);
+                if (messageElement) {
+                    // Create a deleted message placeholder
+                    const deletionMessage = "This message was deleted";
+                    const deletedMessage = addMessage(deletionMessage, "deleted");
+                    messageElement.replaceWith(deletedMessage);
+                }
+            } else {
+                console.error("Failed to delete message:", data.error);
+                alert(`Failed to delete message: ${data.error || 'Unknown error'}`);
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting message:', error);
+            alert('Failed to delete message due to a network error');
+        });
+}
+
+// Handle message deletion notifications
+socket.on("message_deleted", function (data) {
+    console.log("Message deleted:", data);
+
+    // Find the message element
+    const messageElement = document.querySelector(`.message[data-message-id="${data.message_id}"]`);
+    if (messageElement) {
+        // Determine message about deletion
+        let deletionMessage = "This message was deleted";
+        if (data.deleted_by_username) {
+            deletionMessage += data.is_moderator_action
+                ? ` by moderator ${data.deleted_by_username}`
+                : ` by ${data.deleted_by_username}`;
+        }
+
+        // Replace with "deleted" placeholder or remove
+        const deletedMessage = addMessage(deletionMessage, "deleted");
+        messageElement.replaceWith(deletedMessage);
+    }
+});
 
 // Setup tabs for members panel
 function setupMembersPanel() {
