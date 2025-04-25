@@ -1,5 +1,6 @@
+from typing import cast
 from src.database.models import Chat, ChatMember, User
-
+from sqlalchemy.orm.collections import InstrumentedList
 
 class TestChatMember:
     """Test suite for ChatMember model functionality."""
@@ -71,7 +72,8 @@ class TestChatMember:
         assert member.chat.name == "MemberRel Test Chat"
 
         # Verify reverse relationships
-        assert member in user.chats
+        user_chats = cast(InstrumentedList, user.chats)
+        assert member in user_chats
         assert member in chat.members
 
     def test_chat_member_cascade_delete(self, session):
@@ -128,7 +130,7 @@ class TestChatMember:
         # TODO maybe we do not need this
         try:
             assert f"<ChatMember user_id={user.id} chat_id={chat.id} is_moderator=False>" == repr(member)
-        except AssertionError:
+        except AssertionError: # pragma: no cover
             print(f"Warning: {repr(member)} does not match expected format.")  # noqa: T201
 
         member.is_moderator = True
@@ -138,5 +140,5 @@ class TestChatMember:
         # TODO maybe we do not need this
         try:
             assert f"<ChatMember user_id={user.id} chat_id={chat.id} is_moderator=True>" == repr(member)
-        except AssertionError:
+        except AssertionError: # pragma: no cover
             print(f"Warning: {repr(member)} does not match expected format.")  # noqa: T201
