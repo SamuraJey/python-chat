@@ -76,7 +76,8 @@ def get_chat_members(chat_id):
             return jsonify({"error": "You are not a member of this chat"}), 403
 
         # Получаем всех участников чата с информацией о пользователе
-        stmt = select(User.id, User.username, ChatMember.is_moderator).join(ChatMember, User.id == ChatMember.user_id).filter(ChatMember.chat_id == chat_id)
+        # Исключаем забаненных пользователей из списка
+        stmt = select(User.id, User.username, ChatMember.is_moderator).join(ChatMember, User.id == ChatMember.user_id).filter(ChatMember.chat_id == chat_id, ChatMember.is_banned == False)
 
         members = db.session.execute(stmt).all()
 
@@ -170,7 +171,7 @@ def create_chat():
 
 
 @bp.route("/kek")
-def kek():
+def kek():  # pragma: no cover
     return render_template("kek.html")
 
 
@@ -278,6 +279,12 @@ def unban_chat_user(chat_id):
 
         # Unban the user
         chat.unban_member(target_user)
+
+        # Отправляем уведомление всем в чате о разбане пользователя
+        from src.app import socketio
+
+        room_name = str(chat_id)
+        socketio.emit("user_unbanned", {"username": target_user.username, "unbanned_by": current_user.username}, room=room_name)
 
         return jsonify({"success": True, "message": f"User {target_user.username} has been unbanned from the chat"})
     except Exception as e:

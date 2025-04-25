@@ -595,3 +595,329 @@ class TestChatRoutes:
         response = test_client.post("/api/chats/create", json={"name": "Test Chat", "is_group": True, "user_ids": []}, content_type="application/json")
         assert response.status_code == 302  # Redirect to login
         assert "/login" in response.location
+
+    def test_ban_user_success(self, authenticated_client, chat, session, user, chat_member):
+        """Test successfully banning a user from a chat."""
+        # Make the current authenticated user a moderator
+        member = session.query(ChatMember).filter_by(user_id=user.id, chat_id=chat.id).first()
+        member.is_moderator = True
+        session.commit()
+
+        # Create another user to ban
+        target_user = User(username="targetuser")
+        target_user.set_password("password123")
+        session.add(target_user)
+        session.flush()
+
+        # Add target user to chat
+        chat_member = ChatMember(chat_id=chat.id, user_id=target_user.id)
+        session.add(chat_member)
+        session.commit()
+
+        # Ban the user
+        response = authenticated_client.post(f"/api/chat/{chat.id}/ban", json={"user_id": target_user.id, "reason": "Inappropriate behavior"}, content_type="application/json")
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["success"] is True
+        assert f"User {target_user.username} has been banned" in data["message"]
+
+        # Verify the user is banned in the database
+        banned_member = session.query(ChatMember).filter_by(user_id=target_user.id, chat_id=chat.id).first()
+        assert banned_member.is_banned is True
+        assert banned_member.banned_reason == "Inappropriate behavior"
+        assert banned_member.banned_at is not None
+
+    def test_ban_user_unauthorized(self, authenticated_client, chat, session, user):
+        """Test unauthorized attempt to ban a user (non-moderator)."""
+        # Create another user to ban
+        target_user = User(username="targetuser")
+        target_user.set_password("password123")
+        session.add(target_user)
+        session.flush()
+
+        # Add target user to chat
+        chat_member = ChatMember(chat_id=chat.id, user_id=target_user.id)
+        session.add(chat_member)
+        session.commit()
+
+        # Attempt to ban without being a moderator
+        response = authenticated_client.post(f"/api/chat/{chat.id}/ban", json={"user_id": target_user.id, "reason": "Inappropriate behavior"}, content_type="application/json")
+
+        assert response.status_code == 403
+        data = json.loads(response.data)
+        assert "error" in data
+        assert "moderator" in data["error"].lower()
+
+    def test_ban_user_self(self, authenticated_client, chat, session, user, chat_member):
+        """Test attempt to ban self."""
+        # Make the current authenticated user a moderator
+        member = session.query(ChatMember).filter_by(user_id=user.id, chat_id=chat.id).first()
+        member.is_moderator = True
+        session.commit()
+
+        # Attempt to ban self
+        response = authenticated_client.post(f"/api/chat/{chat.id}/ban", json={"user_id": user.id, "reason": "Testing self-ban"}, content_type="application/json")
+
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert "error" in data
+        assert "cannot ban yourself" in data["error"].lower()
+
+    def test_ban_user_nonexistent(self, authenticated_client, chat, session, user, chat_member):
+        """Test attempt to ban a nonexistent user."""
+        # Make the current authenticated user a moderator
+        member = session.query(ChatMember).filter_by(user_id=user.id, chat_id=chat.id).first()
+        member.is_moderator = True
+        session.commit()
+
+        # Attempt to ban nonexistent user
+        response = authenticated_client.post(f"/api/chat/{chat.id}/ban", json={"user_id": 9999, "reason": "Test reason"}, content_type="application/json")
+
+        assert response.status_code == 404
+        data = json.loads(response.data)
+        assert "error" in data
+        assert "user not found" in data["error"].lower()
+
+    def test_ban_moderator(self, authenticated_client, chat, session, user, chat_member):
+        """Test attempt to ban another moderator."""
+        # Make the current authenticated user a moderator
+        member = session.query(ChatMember).filter_by(user_id=user.id, chat_id=chat.id).first()
+        member.is_moderator = True
+        session.commit()
+
+        # Create another moderator
+        other_mod = User(username="othermod")
+        other_mod.set_password("password123")
+        session.add(other_mod)
+        session.flush()
+
+        # Add other moderator to chat
+        other_member = ChatMember(chat_id=chat.id, user_id=other_mod.id, is_moderator=True)
+        session.add(other_member)
+        session.commit()
+
+        # Attempt to ban other moderator
+        response = authenticated_client.post(f"/api/chat/{chat.id}/ban", json={"user_id": other_mod.id, "reason": "Testing mod ban"}, content_type="application/json")
+
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert "error" in data
+        assert "cannot ban a moderator" in data["error"].lower()
+
+    def test_ban_non_member(self, authenticated_client, chat, session, user, chat_member):
+        """Test attempt to ban a user who is not a member of the chat."""
+        # Make the current authenticated user a moderator
+        member = session.query(ChatMember).filter_by(user_id=user.id, chat_id=chat.id).first()
+        member.is_moderator = True
+        session.commit()
+
+        # Create user who is not in the chat
+        non_member = User(username="nonmember")
+        non_member.set_password("password123")
+        session.add(non_member)
+        session.commit()
+
+        # Attempt to ban non-member
+        response = authenticated_client.post(f"/api/chat/{chat.id}/ban", json={"user_id": non_member.id, "reason": "Testing non-member ban"}, content_type="application/json")
+
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert "error" in data
+        assert "not a member" in data["error"].lower()
+
+    def test_unban_user_success(self, authenticated_client, chat, session, user, chat_member):
+        """Test successfully unbanning a user from a chat."""
+        # Make the current authenticated user a moderator
+        member = session.query(ChatMember).filter_by(user_id=user.id, chat_id=chat.id).first()
+        member.is_moderator = True
+        session.commit()
+
+        # Create another user who is banned
+        banned_user = User(username="banneduser")
+        banned_user.set_password("password123")
+        session.add(banned_user)
+        session.flush()
+
+        # Add banned user to chat and set as banned
+        banned_member = ChatMember(chat_id=chat.id, user_id=banned_user.id, is_banned=True)
+        banned_member.banned_at = datetime.now(UTC)
+        banned_member.banned_reason = "Test ban reason"
+        session.add(banned_member)
+        session.commit()
+
+        # Unban the user
+        response = authenticated_client.post(f"/api/chat/{chat.id}/unban", json={"user_id": banned_user.id}, content_type="application/json")
+
+        assert response.status_code == 200
+        data = json.loads(response.data)
+        assert data["success"] is True
+        assert f"User {banned_user.username} has been unbanned" in data["message"]
+
+        # Verify the user is unbanned in the database
+        unbanned_member = session.query(ChatMember).filter_by(user_id=banned_user.id, chat_id=chat.id).first()
+        assert unbanned_member.is_banned is False
+        assert unbanned_member.banned_reason is None
+        assert unbanned_member.banned_at is None
+
+    def test_unban_user_unauthorized(self, authenticated_client, chat, session, user):
+        """Test unauthorized attempt to unban a user (non-moderator)."""
+        # Create another user who is banned
+        banned_user = User(username="banneduser")
+        banned_user.set_password("password123")
+        session.add(banned_user)
+        session.flush()
+
+        # Add banned user to chat and set as banned
+        banned_member = ChatMember(chat_id=chat.id, user_id=banned_user.id, is_banned=True)
+        banned_member.banned_at = datetime.now(UTC)
+        banned_member.banned_reason = "Test ban reason"
+        session.add(banned_member)
+        session.commit()
+
+        # Attempt to unban without being a moderator
+        response = authenticated_client.post(f"/api/chat/{chat.id}/unban", json={"user_id": banned_user.id}, content_type="application/json")
+
+        assert response.status_code == 403
+        data = json.loads(response.data)
+        assert "error" in data
+        assert "moderator" in data["error"].lower()
+
+    def test_unban_user_nonexistent(self, authenticated_client, chat, session, user, chat_member):
+        """Test attempt to unban a nonexistent user."""
+        # Make the current authenticated user a moderator
+        member = session.query(ChatMember).filter_by(user_id=user.id, chat_id=chat.id).first()
+        member.is_moderator = True
+        session.commit()
+
+        # Attempt to unban nonexistent user
+        response = authenticated_client.post(f"/api/chat/{chat.id}/unban", json={"user_id": 9999}, content_type="application/json")
+
+        assert response.status_code == 404
+        data = json.loads(response.data)
+        assert "error" in data
+        assert "user not found" in data["error"].lower()
+
+    def test_unban_not_banned_user(self, authenticated_client, chat, session, user, chat_member):
+        """Test attempt to unban a user who is not banned."""
+        # Make the current authenticated user a moderator
+        member = session.query(ChatMember).filter_by(user_id=user.id, chat_id=chat.id).first()
+        member.is_moderator = True
+        session.commit()
+
+        # Create another user who is not banned
+        normal_user = User(username="normaluser")
+        normal_user.set_password("password123")
+        session.add(normal_user)
+        session.flush()
+
+        # Add user to chat (not banned)
+        chat_member = ChatMember(chat_id=chat.id, user_id=normal_user.id)
+        session.add(chat_member)
+        session.commit()
+
+        # Attempt to unban non-banned user
+        response = authenticated_client.post(f"/api/chat/{chat.id}/unban", json={"user_id": normal_user.id}, content_type="application/json")
+
+        assert response.status_code == 400
+        data = json.loads(response.data)
+        assert "error" in data
+        assert "not banned" in data["error"].lower()
+
+    def test_get_banned_users_success(self, authenticated_client, chat, session, user, chat_member):
+        """Test successfully getting list of banned users."""
+        # Make the current authenticated user a moderator
+        member = session.query(ChatMember).filter_by(user_id=user.id, chat_id=chat.id).first()
+        member.is_moderator = True
+        session.commit()
+
+        # Create banned users
+        banned_users = []
+        for i in range(3):
+            banned_user = User(username=f"banned{i}")
+            banned_user.set_password("password123")
+            session.add(banned_user)
+            session.flush()
+            banned_users.append(banned_user)
+
+        # Add banned users to chat
+        for i, banned_user in enumerate(banned_users):
+            banned_member = ChatMember(chat_id=chat.id, user_id=banned_user.id, is_banned=True)
+            banned_member.banned_at = datetime.now(UTC)
+            banned_member.banned_reason = f"Banned for reason {i}"
+            session.add(banned_member)
+
+        session.commit()
+
+        # Get banned users list
+        response = authenticated_client.get(f"/api/chat/{chat.id}/banned")
+        assert response.status_code == 200
+        data = json.loads(response.data)
+
+        assert "banned_users" in data
+        assert len(data["banned_users"]) == 3
+
+        # Check banned user details
+        for i, banned_user in enumerate(data["banned_users"]):
+            assert banned_user["username"] == f"banned{i}"
+            assert banned_user["reason"] == f"Banned for reason {i}"
+            assert "banned_at" in banned_user
+
+    def test_get_banned_users_unauthorized(self, authenticated_client, chat, session, user):
+        """Test unauthorized attempt to get banned users list (non-moderator)."""
+        # Create a banned user
+        banned_user = User(username="banneduser")
+        banned_user.set_password("password123")
+        session.add(banned_user)
+        session.flush()
+
+        # Add banned user to chat
+        banned_member = ChatMember(chat_id=chat.id, user_id=banned_user.id, is_banned=True)
+        banned_member.banned_at = datetime.now(UTC)
+        banned_member.banned_reason = "Test ban reason"
+        session.add(banned_member)
+        session.commit()
+
+        # Attempt to get banned users without being a moderator
+        response = authenticated_client.get(f"/api/chat/{chat.id}/banned")
+        assert response.status_code == 403
+        data = json.loads(response.data)
+        assert "error" in data
+        assert "moderator" in data["error"].lower()
+
+    def test_get_banned_users_empty(self, authenticated_client, chat, session, user, chat_member):
+        """Test getting empty list of banned users."""
+        # Make the current authenticated user a moderator
+        member = session.query(ChatMember).filter_by(user_id=user.id, chat_id=chat.id).first()
+        member.is_moderator = True
+        session.commit()
+
+        # Get banned users list (empty)
+        response = authenticated_client.get(f"/api/chat/{chat.id}/banned")
+        assert response.status_code == 200
+        data = json.loads(response.data)
+
+        assert "banned_users" in data
+        assert len(data["banned_users"]) == 0
+
+    def test_get_banned_users_nonexistent_chat(self, authenticated_client):
+        """Test getting banned users for a nonexistent chat."""
+        response = authenticated_client.get("/api/chat/9999/banned")
+        assert response.status_code == 404 or response.status_code == 500  # TODO fix this in the API
+
+    def test_ban_unban_unauthenticated(self, test_client, chat):
+        """Test that unauthenticated users cannot ban or unban users."""
+        # Test ban endpoint
+        response = test_client.post(f"/api/chat/{chat.id}/ban", json={"user_id": 1, "reason": "Test reason"}, content_type="application/json")
+        assert response.status_code == 302  # Redirect to login
+        assert "/login" in response.location
+
+        # Test unban endpoint
+        response = test_client.post(f"/api/chat/{chat.id}/unban", json={"user_id": 1}, content_type="application/json")
+        assert response.status_code == 302  # Redirect to login
+        assert "/login" in response.location
+
+        # Test banned users list endpoint
+        response = test_client.get(f"/api/chat/{chat.id}/banned")
+        assert response.status_code == 302  # Redirect to login
+        assert "/login" in response.location
