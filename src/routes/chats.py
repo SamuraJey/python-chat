@@ -91,6 +91,22 @@ def get_chat_members(chat_id):
         return jsonify({"error": "Failed to retrieve chat members"}), 500
 
 
+@bp.route("/api/chats")
+@login_required
+def get_user_chats():
+    """Получить список чатов текущего пользователя"""
+    try:
+        # Получаем чаты, в которых пользователь является участником
+        stmt = select(Chat).join(ChatMember).filter(ChatMember.user_id == current_user.id)
+        chats = db.session.execute(stmt).scalars().all()
+
+        return jsonify({"chats": [{"id": chat.id, "name": chat.name, "is_group": chat.is_group} for chat in chats]})
+    except Exception as e:
+        current_app.logger.error(f"Error retrieving user chats: {e}")
+
+        return jsonify({"error": "Failed to retrieve chats"}), 500
+
+
 @bp.route("/api/search-users")
 @login_required
 def search_users():
@@ -153,17 +169,6 @@ def create_chat():
         return jsonify({"error": "Failed to create chat"}), 500
 
 
-@bp.route("/api/chats")
-@login_required
-def get_user_chats():
-    """Получить список чатов текущего пользователя"""
-    try:
-        # Получаем чаты, в которых пользователь является участником
-        stmt = select(Chat).join(ChatMember).filter(ChatMember.user_id == current_user.id)
-        chats = db.session.execute(stmt).scalars().all()
-
-        return jsonify({"chats": [{"id": chat.id, "name": chat.name, "is_group": chat.is_group} for chat in chats]})
-    except Exception as e:
-        current_app.logger.error(f"Error retrieving user chats: {e}")
-
-        return jsonify({"error": "Failed to retrieve chats"}), 500
+@bp.route("/kek")
+def kek():
+    return render_template("kek.html")
