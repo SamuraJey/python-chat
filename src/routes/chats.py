@@ -1,3 +1,5 @@
+from typing import cast
+
 from flask import Blueprint, abort, current_app, jsonify, render_template, request
 from flask_login import current_user, login_required
 from sqlalchemy import select
@@ -39,6 +41,8 @@ def get_chat_messages(chat_id):
         # Используем left join чтобы включить сообщения удаленных пользователей
         stmt = select(ChatMessage, User.username).outerjoin(User, ChatMessage.user_id == User.id).filter(ChatMessage.chat_id == chat_id).order_by(ChatMessage.sent_at)
         messages = db.session.execute(stmt).all()
+        stmt = select(ChatMessage, User.username).outerjoin(User, ChatMessage.user_id == User.id).filter(ChatMessage.chat_id == chat_id).order_by(ChatMessage.sent_at)
+        messages = db.session.execute(stmt).all()
         # Format messages for JSON response
         formatted_messages = [
             {
@@ -57,6 +61,52 @@ def get_chat_messages(chat_id):
         current_app.logger.error(f"Error retrieving messages for chat {chat_id}: {e}")
         abort(404)
         # return jsonify({"error": "Failed to retrieve messages"})
+
+
+@bp.route("/api/chat/<int:chat_id>/members")
+@login_required
+def get_chat_members(chat_id):
+    """Get all members of a chat"""
+    try:
+        # Проверяем, что чат существует
+        chat = db.get_or_404(Chat, chat_id)
+
+        # Проверяем, что пользователь является участником этого чата
+        member_check = db.session.execute(select(ChatMember).filter(ChatMember.chat_id == chat_id, ChatMember.user_id == current_user.id)).scalar_one_or_none()
+
+        if not member_check:
+            return jsonify({"error": "You are not a member of this chat"}), 403
+
+        # Получаем всех участников чата с информацией о пользователе
+        stmt = select(User.id, User.username, ChatMember.is_moderator).join(ChatMember, User.id == ChatMember.user_id).filter(ChatMember.chat_id == chat_id)
+
+        members = db.session.execute(stmt).all()
+
+        formatted_members = [{"id": member.id, "username": member.username, "is_moderator": member.is_moderator} for member in members]
+
+        return jsonify({"members": formatted_members})
+    except HTTPException as e:
+        current_app.logger.error(f"HTTP error retrieving members for chat {chat_id}: {e}")
+        raise
+    except Exception as e:
+        current_app.logger.error(f"Error retrieving chat members: {e}")
+        return jsonify({"error": "Failed to retrieve chat members"}), 500
+
+
+@bp.route("/api/chats")
+@login_required
+def get_user_chats():
+    """Получить список чатов текущего пользователя"""
+    try:
+        # Получаем чаты, в которых пользователь является участником
+        stmt = select(Chat).join(ChatMember).filter(ChatMember.user_id == current_user.id)
+        chats = db.session.execute(stmt).scalars().all()
+
+        return jsonify({"chats": [{"id": chat.id, "name": chat.name, "is_group": chat.is_group} for chat in chats]})
+    except Exception as e:
+        current_app.logger.error(f"Error retrieving user chats: {e}")
+
+        return jsonify({"error": "Failed to retrieve chats"}), 500
 
 
 @bp.route("/api/search-users")
@@ -119,22 +169,6 @@ def create_chat():
         db.session.rollback()
         current_app.logger.error(f"Error creating chat: {e}")
         return jsonify({"error": "Failed to create chat"}), 500
-
-
-@bp.route("/api/chats")
-@login_required
-def get_user_chats():
-    """Получить список чатов текущего пользователя"""
-    try:
-        # Получаем чаты, в которых пользователь является участником
-        stmt = select(Chat).join(ChatMember).filter(ChatMember.user_id == current_user.id)
-        chats = db.session.execute(stmt).scalars().all()
-
-        return jsonify({"chats": [{"id": chat.id, "name": chat.name, "is_group": chat.is_group} for chat in chats]})
-    except Exception as e:
-        current_app.logger.error(f"Error retrieving user chats: {e}")
-
-        return jsonify({"error": "Failed to retrieve chats"}), 500
 
 
 @bp.route("/kek")

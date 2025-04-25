@@ -5,6 +5,10 @@ const sendButton = document.getElementById("send-button");
 const currentUsernameSpan = document.getElementById("current-username");
 const usernameInput = document.getElementById("username-input");
 const updateUsernameButton = document.getElementById("update-username-button");
+const toggleUsersButton = document.getElementById('toggle-users');
+const membersPanel = document.getElementById('members-panel');
+const closeMembersPanel = document.getElementById('close-members-panel');
+const membersList = document.getElementById('members-list');
 
 const pathParts = window.location.pathname.split('/');
 console.log(pathParts);
@@ -132,3 +136,78 @@ function addMessage(message, type, username = "") {
     chatMessages.appendChild(messageElement);
     chatMessages.scrollTop = chatMessages.scrollHeight;
 }
+
+// Функция для загрузки участников чата
+function loadChatMembers() {
+    membersList.innerHTML = '<div class="loading-spinner">Loading members...</div>';
+    
+    fetch(`/api/chat/${chatId}/members`)
+        .then(response => response.json())
+        .then(data => {
+            membersList.innerHTML = '';
+            
+            if (data.error) {
+                membersList.innerHTML = `<div class="error-message">${data.error}</div>`;
+                return;
+            }
+            
+            if (data.members && data.members.length > 0) {
+                data.members.forEach(member => {
+                    const memberDiv = document.createElement('div');
+                    memberDiv.className = 'chat-member';
+                    
+                    const usernameSpan = document.createElement('span');
+                    usernameSpan.className = 'username';
+                    usernameSpan.textContent = member.username;
+                    
+                    memberDiv.appendChild(usernameSpan);
+                    
+                    if (member.is_moderator) {
+                        const moderatorBadge = document.createElement('span');
+                        moderatorBadge.className = 'badge moderator';
+                        moderatorBadge.textContent = 'Moderator';
+                        memberDiv.appendChild(moderatorBadge);
+                    }
+                    
+                    membersList.appendChild(memberDiv);
+                });
+            } else {
+                membersList.innerHTML = '<div>No members found</div>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading chat members:', error);
+            membersList.innerHTML = '<div class="error-message">Failed to load members</div>';
+        });
+}
+
+// Управление панелью участников
+toggleUsersButton.addEventListener('click', (e) => {
+    e.stopPropagation(); // Предотвращаем всплытие события
+    membersPanel.classList.toggle('active');
+    if (membersPanel.classList.contains('active')) {
+        loadChatMembers();
+    }
+});
+
+closeMembersPanel.addEventListener('click', () => {
+    membersPanel.classList.remove('active');
+});
+
+// Добавляем обработчик клика на документ для закрытия панели при клике вне её
+document.addEventListener('click', (e) => {
+    // Проверяем, активна ли панель и был ли клик вне панели и вне кнопки переключения
+    if (
+        membersPanel.classList.contains('active') && 
+        !membersPanel.contains(e.target) && 
+        e.target !== toggleUsersButton &&
+        !toggleUsersButton.contains(e.target)
+    ) {
+        membersPanel.classList.remove('active');
+    }
+});
+
+// Предотвращаем закрытие панели при клике внутри неё
+membersPanel.addEventListener('click', (e) => {
+    e.stopPropagation();
+});
