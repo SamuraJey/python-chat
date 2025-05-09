@@ -1,3 +1,6 @@
+from collections.abc import Generator
+from typing import Any
+
 import pytest
 from flask import Flask
 from flask.testing import FlaskClient
@@ -15,7 +18,7 @@ from src.database.models.user import User
 
 
 @pytest.fixture(scope="function")
-def test_client(session: Session, app: Flask) -> FlaskClient:
+def test_client(session: Session, app: Flask) -> Generator[FlaskClient, Any]:
     """Create a Flask test client for API tests."""
     app.config["WTF_CSRF_ENABLED"] = False  # Disable CSRF for testing
 
@@ -53,7 +56,7 @@ def admin_user(session: Session) -> User:
 
 
 @pytest.fixture(scope="function")
-def authenticated_client(app: Flask, user: User) -> FlaskClient:
+def authenticated_client(app: Flask, user: User) -> Generator[FlaskClient, Any]:
     """Create an authenticated test client."""
     with app.test_client() as client:
         with client.session_transaction() as sess:
