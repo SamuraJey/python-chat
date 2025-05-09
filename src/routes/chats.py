@@ -44,6 +44,7 @@ def get_chat_messages(chat_id):
         # Format messages for JSON response
         formatted_messages = [
             {
+                "id": msg.ChatMessage.id,
                 "content": msg.ChatMessage.content,
                 "username": msg.username if msg.username else "[Deleted User]",
                 "timestamp": msg.ChatMessage.sent_at.isoformat(),
@@ -320,3 +321,46 @@ def get_banned_users(chat_id):
     except Exception as e:
         current_app.logger.error(f"Error getting banned users: {e}")
         return jsonify({"error": "Failed to get banned users"}), 500
+
+
+@bp.route("/api/message/<int:message_id>/delete", methods=["POST"])
+@login_required
+def delete_message(message_id):
+    """Delete a message from a chat (user can delete own messages, moderators can delete any)"""
+    try:
+        message = db.get_or_404(ChatMessage, message_id)
+
+        # Get the chat to check permissions
+        chat = db.get_or_404(Chat, message.chat_id)
+
+        # Check if the user is the message author or a moderator
+        is_author = message.user_id == current_user.id
+        is_moderator = (
+            db.session.execute(select(ChatMember).filter(ChatMember.chat_id == message.chat_id, ChatMember.user_id == current_user.id, ChatMember.is_moderator == True)).scalar_one_or_none()
+            is not None
+        )
+
+        if not (is_author or is_moderator):
+            return jsonify({"error": "You don't have permission to delete this message"}), 403
+
+        # Delete the message
+        db.session.delete(message)
+        db.session.commit()
+
+        # Notify other users about the message deletion
+        from src.app import socketio
+
+        # Prepare additional info about who deleted the message and why
+        deletion_info = {
+            "deleted_by_username": current_user.username,
+            "is_moderator_action": is_moderator and not is_author,
+        }
+
+        # Send websocket notification to all users in the chat room
+        socketio.emit("message_deleted", {"message_id": message_id, "chat_id": message.chat_id, **deletion_info}, room=str(message.chat_id))
+
+        return jsonify({"success": True})
+    except Exception as e:
+        current_app.logger.error(f"Error deleting message: {e}")
+        db.session.rollback()
+        return jsonify({"error": "Failed to delete message"}), 500
