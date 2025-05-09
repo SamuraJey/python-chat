@@ -8,7 +8,7 @@ document.addEventListener('DOMContentLoaded', function() {
             document.querySelector('#active-users .analytics-value').textContent = data.active_users;
             document.querySelector('#messages-today .analytics-value').textContent = data.messages_today;
         });
-    
+
     // Загрузка данных для графика активности чатов
     fetch('/api/analytics/chat-activity')
         .then(response => response.json())
@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 }
             });
         });
-    
+
     // Загрузка данных для графика активности пользователей
     fetch('/api/analytics/user-activity')
         .then(response => response.json())

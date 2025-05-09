@@ -28,7 +28,7 @@ Auth -> Form: validate_on_submit()
 alt Форма валидна
     Auth -> DB: User.query.filter_by(username=form.username.data).first()
     DB -> Auth: user
-    
+
     alt Пользователь найден и пароль верный
         Auth -> UserModel: check_password(form.password.data)
         UserModel -> Auth: True

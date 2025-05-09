@@ -113,24 +113,6 @@ class TestSocketEvents:
         assert isinstance(user_events[0]["args"][0]["users"], list)
         assert user.username in user_events[0]["args"][0]["users"]
 
-    def test_typing_status(self, authenticated_socket, chat):
-        """Test typing status updates."""
-        # Join a chat first
-        authenticated_socket.emit("join", {"chat_id": chat.id})
-        authenticated_socket.get_received()  # Clear events
-
-        # Send typing event
-        authenticated_socket.emit("typing", {"isTyping": True})
-
-        # Get received events
-        received = authenticated_socket.get_received()
-
-        # Find typing status event - note that this test may be flaky because
-        # 'typing' is broadcast to other users, not back to the sender
-        typing_events = [event for event in received if event["name"] == "typing"]
-        # This might be empty since we're testing from the sender's perspective
-        # In a real test with multiple clients, we'd verify this from another client
-
     def test_leave_chat(self, authenticated_socket, chat):
         """Test leaving a chat room."""
         # Join chat first
@@ -143,3 +125,4 @@ class TestSocketEvents:
         # Since 'user_left_chat' is broadcast to the room and not the leaving user,
         # we can't easily test that event was received
         # In a real test with multiple clients, we'd verify this from another client
+        assert authenticated_socket.is_connected()
