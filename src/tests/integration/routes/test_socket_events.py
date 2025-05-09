@@ -1,32 +1,28 @@
 import pytest
-from flask_socketio import SocketIO
+from flask.testing import FlaskClient
+from flask_socketio import SocketIOTestClient
 
+from src.database.models.chat import Chat
 from src.database.models.chat_message import ChatMessage
+from src.database.models.user import User
 
 
 class TestSocketEvents:
     """Tests for Socket.IO events."""
 
     @pytest.fixture
-    def authenticated_socket(self, app, user):
+    def authenticated_socket(self, test_client: FlaskClient, socket_client: SocketIOTestClient, user: User) -> SocketIOTestClient:
         """Create an authenticated Socket.IO test client."""
-        flask_test_client = app.test_client()
-
         # Log the user in first
-        with flask_test_client.session_transaction() as sess:
+        with test_client.session_transaction() as sess:
             sess["_user_id"] = user.id
-
-        # Create Socket.IO test client
-        socket_io = SocketIO(app)
-        socket_client = socket_io.test_client(app, flask_test_client=flask_test_client)
 
         # Ensure socket connected successfully
         assert socket_client.is_connected()
-
         return socket_client
 
     @pytest.mark.skip(reason="TODO not done test")
-    def test_connect(self, authenticated_socket):
+    def test_connect(self, authenticated_socket: SocketIOTestClient):
         """Test socket connection event."""
         # Connection is verified in the fixture
         assert authenticated_socket.is_connected()
@@ -38,16 +34,16 @@ class TestSocketEvents:
         assert any(event["name"] == "online_users" for event in received)
 
     @pytest.mark.skip(reason="TODO not done test")
-    def test_connect_unauthenticated(self, app):
+    def test_connect_unauthenticated(
+        self,
+        socket_client: SocketIOTestClient,
+    ):
         """Test that unauthenticated users can't establish socket connections."""
-        flask_test_client = app.test_client()
-        socket_io = SocketIO(app)
-        socket_client = socket_io.test_client(app, flask_test_client=flask_test_client)
 
         # Socket connection should fail for unauthenticated users
         assert not socket_client.is_connected()
 
-    def test_disconnect(self, authenticated_socket):
+    def test_disconnect(self, authenticated_socket: SocketIOTestClient):
         """Test socket disconnection."""
         # First ensure we're connected
         assert authenticated_socket.is_connected()
@@ -113,7 +109,7 @@ class TestSocketEvents:
         assert isinstance(user_events[0]["args"][0]["users"], list)
         assert user.username in user_events[0]["args"][0]["users"]
 
-    def test_leave_chat(self, authenticated_socket, chat):
+    def test_leave_chat(self, authenticated_socket: SocketIOTestClient, chat: Chat):
         """Test leaving a chat room."""
         # Join chat first
         authenticated_socket.emit("join", {"chat_id": chat.id})

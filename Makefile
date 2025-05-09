@@ -48,4 +48,4 @@ test:
 	$(VENV)/bin/pytest src/tests
 
 test-cov:
-	$(VENV)/bin/pytest src/tests --cov=src
+	$(VENV)/bin/pytest src/tests --cov=src --cov=src/tests

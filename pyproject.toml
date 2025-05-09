@@ -150,6 +150,18 @@ norecursedirs = [
     "logs",
 ]
 
+[tool.coverage.run]
+source = ["src"]
+omit = [
+    "*/postgres-data/*",
+    "*/tests/conftest.py",
+    "*/migrations/*",
+    "*/settings/*",
+    "*/__pycache__/*",
+    "*/.env/*",
+    "*/.venv/*",
+]
+
 [tool.coverage.report]
 exclude_lines = [
     "pragma: no cover",

@@ -3,7 +3,7 @@ from typing import cast
 from flask import Blueprint, abort, current_app, jsonify, render_template, request
 from flask_login import current_user, login_required
 from sqlalchemy import select
-from werkzeug.exceptions import HTTPException
+from werkzeug.exceptions import HTTPException, NotFound
 
 from src.database import db
 from src.database.models.chat import Chat
@@ -358,7 +358,9 @@ def delete_message(message_id):
         socketio.emit("message_deleted", {"message_id": message_id, "chat_id": message.chat_id, **deletion_info}, room=str(message.chat_id))
 
         return jsonify({"success": True})
+    except NotFound as e:
+        raise e
     except Exception as e:
         current_app.logger.error(f"Error deleting message: {e}")
         db.session.rollback()
-        return jsonify({"error": "Failed to delete message"}), 500
+        raise
