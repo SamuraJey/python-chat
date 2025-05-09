@@ -39,7 +39,7 @@ SocketClient --> SocketServer : WebSocket соединение
 SocketServer --> Events : обработка событий
 
 App --> Auth : авторизация пользователей
-App --> Index : главная страница 
+App --> Index : главная страница
 App --> Chats : работа с чатами
 
 Auth --> UserModel : создание/валидация пользователей

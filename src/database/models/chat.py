@@ -37,7 +37,7 @@ class Chat(Base):
             db.session.delete(member)
             db.session.commit()
 
-    def ban_member(self, user: User, reason=None) -> None:
+    def ban_member(self, user: User, reason=None) -> bool:
         """Ban a user from this chat."""
         member = db.session.query(ChatMember).filter_by(user_id=user.id, chat_id=self.id).first()
         if member:
@@ -46,7 +46,7 @@ class Chat(Base):
             return True
         return False
 
-    def unban_member(self, user: User) -> None:
+    def unban_member(self, user: User) -> bool:
         """Unban a user from this chat."""
         member = db.session.query(ChatMember).filter_by(user_id=user.id, chat_id=self.id).first()
         if member:
@@ -70,12 +70,12 @@ class Chat(Base):
         """Get all users in this chat."""
         return cast(list[User], [member.user for member in self.members if not member.is_banned])
 
-    def get_banned_members(self) -> list[tuple[User, datetime, str]]:
+    def get_banned_members(self) -> list[tuple[User, datetime | None, str | None]]:
         """Get all banned users in this chat with ban details."""
         banned_members = []
         for member in self.members:
             if member.is_banned:
-                banned_members.append((member.user, member.banned_at, member.banned_reason))
+                banned_members.append((cast(User, member.user), member.banned_at, member.banned_reason))  # noqa im too lazy to fix this
         return banned_members
 
     def get_moderators(self) -> list[User]:

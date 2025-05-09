@@ -62,9 +62,7 @@ class TestAuthRoutes:
     def test_register_password_mismatch(self, test_client):
         """Test registration with mismatched passwords."""
         response = test_client.post("/register", data={"username": "newuser", "password": "password123", "confirm_password": "differentpassword"}, follow_redirects=True)
-        print("kek")
         assert response.status_code == 200
-        print(response.data)
         assert b"Passwords must match" in response.data or b"Field must be equal to" in response.data
 
     def test_logout(self, authenticated_client):

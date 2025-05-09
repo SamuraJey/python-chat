@@ -1,5 +1,11 @@
+from collections.abc import Generator
+from typing import Any
+
 import pytest
+from flask import Flask
+from flask.testing import FlaskClient
 from flask_socketio import SocketIO, SocketIOTestClient
+from sqlalchemy.orm import Session
 
 from src.database.models.chat import Chat
 from src.database.models.chat_member import ChatMember
@@ -12,16 +18,16 @@ from src.database.models.user import User
 
 
 @pytest.fixture(scope="function")
-def test_client(session, app):
+def test_client(session: Session, app: Flask) -> Generator[FlaskClient, Any]:
     """Create a Flask test client for API tests."""
     app.config["WTF_CSRF_ENABLED"] = False  # Disable CSRF for testing
-    with app.test_client() as client:
-        with app.app_context():
-            yield client
+
+    with app.test_client() as client, app.app_context():
+        yield client
 
 
 @pytest.fixture(scope="function")
-def socket_client(session, app) -> SocketIOTestClient:
+def socket_client(session: Session, app: Flask) -> SocketIOTestClient:
     """Create a Socket.IO test client."""
     flask_test_client = app.test_client()
     socket_io = SocketIO(app)
@@ -30,7 +36,7 @@ def socket_client(session, app) -> SocketIOTestClient:
 
 
 @pytest.fixture(scope="function")
-def user(session) -> User:
+def user(session: Session) -> User:
     """Create a test user."""
     user = User(username="testuser")
     user.set_password("password123")
@@ -40,7 +46,7 @@ def user(session) -> User:
 
 
 @pytest.fixture(scope="function")
-def admin_user(session) -> User:
+def admin_user(session: Session) -> User:
     """Create an admin test user."""
     user = User(username="adminuser", is_admin=True)
     user.set_password("password123")
@@ -50,7 +56,7 @@ def admin_user(session) -> User:
 
 
 @pytest.fixture(scope="function")
-def authenticated_client(app, user):
+def authenticated_client(app: Flask, user: User) -> Generator[FlaskClient, Any]:
     """Create an authenticated test client."""
     with app.test_client() as client:
         with client.session_transaction() as sess:
@@ -60,7 +66,7 @@ def authenticated_client(app, user):
 
 
 @pytest.fixture(scope="function")
-def chat(session) -> Chat:
+def chat(session: Session) -> Chat:
     """Create a test chat."""
     chat = Chat(name="Test Chat", is_group=True)
     session.add(chat)
@@ -69,7 +75,7 @@ def chat(session) -> Chat:
 
 
 @pytest.fixture(scope="function")
-def chat_member(session, user, chat) -> ChatMember:
+def chat_member(session: Session, user: User, chat: Chat) -> ChatMember:
     """Create a test chat membership."""
     chat_member = ChatMember(user_id=user.id, chat_id=chat.id)
     session.add(chat_member)
@@ -78,7 +84,7 @@ def chat_member(session, user, chat) -> ChatMember:
 
 
 @pytest.fixture(scope="function")
-def chat_message(session, user, chat) -> ChatMessage:
+def chat_message(session: Session, user: User, chat: Chat) -> ChatMessage:
     """Create a test message in chat."""
     message = ChatMessage(user_id=user.id, chat_id=chat.id, content="Test message")
     session.add(message)

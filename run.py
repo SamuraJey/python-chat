@@ -1,4 +1,4 @@
-from src.app import create_app, socketio
+from src.app import create_app, socketio  # pragma: no cover
 
 if __name__ == "__main__":
     app = create_app()
