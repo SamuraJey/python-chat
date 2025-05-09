@@ -1,22 +1,21 @@
-import logging  # pragma: no cover
-import os  # pragma: no cover
-import sys  # pragma: no cover
+import logging
+import os
+import sys
 
-from src.database import db  # pragma: no cover
-from src.database.models.chat import Chat, ChatMember  # pragma: no cover
-from src.database.models.chat_message import ChatMessage  # pragma: no cover
-from src.database.models.user import User  # pragma: no cover
+from src.database import db
+from src.database.models.chat import Chat, ChatMember
+from src.database.models.chat_message import ChatMessage
+from src.database.models.user import User
 
 # Add the project root to Python path to fix import issues
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))  # pragma: no cover
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 
-# Configure logging
-logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")  # pragma: no cover
-logger = logging.getLogger(__name__)  # pragma: no cover
+logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 
-def initialize_db(app, db):  # pragma: no cover
+def initialize_db(app, db):
     """Initialize database with sample data"""
     with app.app_context():
         try:
