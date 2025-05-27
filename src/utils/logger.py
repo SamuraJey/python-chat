@@ -2,17 +2,18 @@ import logging
 import os
 import sys
 from logging.handlers import RotatingFileHandler
+from pathlib import Path
 
 from flask import Flask
 
 
 def setup_logger(app: Flask) -> logging.Logger:  # pragma: no cover
-    if not os.path.exists("../../logs"):
-        os.makedirs("../../logs")
-
+    logs_dir = os.path.join(app.root_path, "logs")  # Папка logs рядом с Flask-приложением
+    Path(logs_dir).mkdir(parents=True, exist_ok=True)  # Создаём папку, если её нет
+    
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
-
-    file_handler = RotatingFileHandler("../../logs/app.log", maxBytes=5000, backupCount=5)
+    log_file = os.path.join(logs_dir, "app.log")
+    file_handler = RotatingFileHandler(log_file, maxBytes=5000, backupCount=5)
     file_handler.setFormatter(formatter)
 
     console_handler = logging.StreamHandler(sys.stdout)
