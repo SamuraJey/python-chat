@@ -1,6 +1,7 @@
 import os
 
 from flask import Flask, render_template, request
+from flask_cors import CORS  # Import CORS
 from flask_login import LoginManager
 from flask_socketio import SocketIO
 
@@ -8,7 +9,8 @@ from python_chat.database import db
 from python_chat.database.models.user import User
 from python_chat.utils.logger import setup_logger
 
-socketio = SocketIO()
+# Initialize SocketIO
+socketio = SocketIO(cors_allowed_origins="*")  # Allow all origins for SocketIO
 
 
 def create_app(test_config=None) -> Flask:
@@ -29,9 +31,13 @@ def create_app(test_config=None) -> Flask:
     db.init_app(app)
     socketio.init_app(app, cors_allowed_origins="*")
 
+    # Enable CORS for all routes and origins
+    CORS(app, resources={r"/*": {"origins": "*"}})
+
     # Setup login manager
-    login_manager = LoginManager(app)
+    login_manager = LoginManager()
     login_manager.login_view = "auth.login"
+    login_manager.init_app(app)
 
     setup_logger(app)
 
@@ -48,13 +54,15 @@ def create_app(test_config=None) -> Flask:
             app.logger.error(f"Error loading user {user_id}: {e}")
             return None
 
-    from python_chat.routes import admin, auth, chats, index, profile
+    from python_chat.routes import admin, api_auth, api_test, auth, chats, index, profile
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(index.bp)
     app.register_blueprint(chats.bp)
     app.register_blueprint(profile.bp)
     app.register_blueprint(admin.bp)
+    app.register_blueprint(api_auth.bp)
+    app.register_blueprint(api_test.bp)
 
     # Initialize Socket.IO event handlers
     with app.app_context():
