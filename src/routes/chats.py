@@ -3,7 +3,7 @@ from typing import cast
 from flask import Blueprint, abort, current_app, jsonify, render_template, request
 from flask_login import current_user, login_required
 from sqlalchemy import select
-from werkzeug.exceptions import HTTPException
+from werkzeug.exceptions import HTTPException, NotFound
 
 from src.database import db
 from src.database.models.chat import Chat
@@ -37,7 +37,7 @@ def chat_page(chat_id):
 def get_chat_messages(chat_id):
     """Get previous messages for a chat"""
     try:
-        chat = db.get_or_404(Chat, chat_id)
+        db.get_or_404(Chat, chat_id)
         # Используем left join чтобы включить сообщения удаленных пользователей
         stmt = select(ChatMessage, User.username).outerjoin(User, ChatMessage.user_id == User.id).filter(ChatMessage.chat_id == chat_id).order_by(ChatMessage.sent_at)
         messages = db.session.execute(stmt).all()
@@ -59,7 +59,6 @@ def get_chat_messages(chat_id):
     except Exception as e:
         current_app.logger.error(f"Error retrieving messages for chat {chat_id}: {e}")
         abort(404)
-        # return jsonify({"error": "Failed to retrieve messages"})
 
 
 @bp.route("/api/chat/<int:chat_id>/members")
@@ -68,7 +67,7 @@ def get_chat_members(chat_id):
     """Get all members of a chat"""
     try:
         # Проверяем, что чат существует
-        chat = db.get_or_404(Chat, chat_id)
+        db.get_or_404(Chat, chat_id)
 
         # Проверяем, что пользователь является участником этого чата
         member_check = db.session.execute(select(ChatMember).filter(ChatMember.chat_id == chat_id, ChatMember.user_id == current_user.id)).scalar_one_or_none()
@@ -298,8 +297,7 @@ def unban_chat_user(chat_id):
 def get_banned_users(chat_id):
     """Get list of banned users in a chat (moderator only)"""
     try:
-        chat = db.get_or_404(Chat, chat_id)
-
+        db.get_or_404(Chat, chat_id)
         # Check if current user is a moderator
         moderator_check = db.session.execute(select(ChatMember).filter(ChatMember.chat_id == chat_id, ChatMember.user_id == current_user.id, ChatMember.is_moderator == True)).scalar_one_or_none()
 
@@ -331,7 +329,7 @@ def delete_message(message_id):
         message = db.get_or_404(ChatMessage, message_id)
 
         # Get the chat to check permissions
-        chat = db.get_or_404(Chat, message.chat_id)
+        db.get_or_404(Chat, message.chat_id)  # noqa
 
         # Check if the user is the message author or a moderator
         is_author = message.user_id == current_user.id
@@ -360,7 +358,9 @@ def delete_message(message_id):
         socketio.emit("message_deleted", {"message_id": message_id, "chat_id": message.chat_id, **deletion_info}, room=str(message.chat_id))
 
         return jsonify({"success": True})
+    except NotFound as e:
+        raise e
     except Exception as e:
         current_app.logger.error(f"Error deleting message: {e}")
         db.session.rollback()
-        return jsonify({"error": "Failed to delete message"}), 500
+        raise

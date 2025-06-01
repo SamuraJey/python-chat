@@ -1,7 +1,7 @@
 VENV ?= .venv
 PYTHON_VERSION ?= 3.13
 
-.PHONY: init clean pretty lint mypy
+.PHONY: init clean pretty lint mypy ruff-lint test test-cov
 
 .create-venv:
 	test -d $(VENV) || python$(PYTHON_VERSION) -m venv $(VENV)
@@ -11,14 +11,16 @@ PYTHON_VERSION ?= 3.13
 .install-deps:
 	$(VENV)/bin/poetry install
 
-# .install-pre-commit:
-# 	$(VENV)/bin/poetry run pre-commit install
+.install-pre-commit:
+	$(VENV)/bin/poetry run pre-commit install
 
 init:
 	@echo "Creating virtual environment..."
 	@$(MAKE) .create-venv
 	@echo "Installing dependencies..."
 	@$(MAKE) .install-deps
+	@echo "Installing pre-commit hooks..."
+	@$(MAKE) .install-pre-commit
 
 clean:
 	rm -rf .venv
@@ -33,11 +35,17 @@ pretty:
 	$(VENV)/bin/ruff check --fix-only .
 	$(VENV)/bin/ruff format .
 
-.ruff-lint:
+ruff-lint:
 	$(VENV)/bin/ruff check .
 
 mypy:
 	$(VENV)/bin/mypy --install-types --non-interactive .
 
 
-lint: mypy .ruff-lint
+lint: ruff-lint mypy
+
+test:
+	$(VENV)/bin/pytest src/tests
+
+test-cov:
+	$(VENV)/bin/pytest src/tests --cov=src --cov=src/tests
