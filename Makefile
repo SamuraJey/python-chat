@@ -9,10 +9,10 @@ PYTHON_VERSION ?= 3.13
 	$(VENV)/bin/python -m pip install poetry
 
 .install-deps:
-	$(VENV)/bin/poetry install
+	poetry run poetry install
 
 .install-pre-commit:
-	$(VENV)/bin/poetry run pre-commit install
+	poetry run pre-commit install
 
 init:
 	@echo "Creating virtual environment..."
@@ -32,20 +32,20 @@ clean:
 	rm -rf *.egg-info
 
 pretty:
-	$(VENV)/bin/ruff check --fix-only .
-	$(VENV)/bin/ruff format .
+	poetry run ruff check --fix-only .
+	poetry run ruff format .
 
 ruff-lint:
-	$(VENV)/bin/ruff check .
+	poetry run ruff check .
 
 mypy:
-	$(VENV)/bin/mypy --install-types --non-interactive .
+	poetry run mypy --install-types --non-interactive .
 
 
 lint: ruff-lint mypy
 
 test:
-	$(VENV)/bin/pytest ./tests
+	poetry run pytest ./tests
 
 test-cov:
-	$(VENV)/bin/pytest ./tests --cov=python_chat --cov=./tests --cov-report term-missing --cov-fail-under=85
+	poetry run pytest ./tests --cov=python_chat --cov=./tests --cov-report term-missing --cov-fail-under=85
