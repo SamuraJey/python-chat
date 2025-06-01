@@ -73,26 +73,35 @@ http://127.0.0.1:5000
 
 ```
 python-chat/
-├── src/                    # Application source code
+├── .github/                # CI/CD workflows (e.g., GitHub Actions)
+├── images/                 # Screenshots and images for README
+├── plantuml/               # UML diagrams
+├── python_chat/            # Application source code
+│   ├── __init__.py
 │   ├── app.py              # Flask application setup
-│   ├── database/           # Database models and initialization
-│   │   ├── models/         # SQLAlchemy models
-│   ├── forms/              # WTForms for form handling
-│   ├── routes/             # Flask blueprints/routes
-│   │   ├── events.py       # Socket.IO event handlers
-│   │   ├── auth.py         # Authentication routes
-│   │   ├── ...
-│   ├── tests/              # Test files
-│   └── utils/              # Utility functions
+│   ├── database/           # Database models and initialization logic
+│   │   ├── __init__.py
+│   │   ├── db_init.py      # Core database initialization functions
+│   │   └── models/         # SQLAlchemy models (e.g., user.py, chat.py)
+│   ├── forms/              # WTForms for form handling (e.g., auth.py)
+│   │   └── __init__.py
+│   ├── routes/             # Flask blueprints/routes (e.g., auth.py, events.py)
+│   │   └── __init__.py
+│   └── utils/              # Utility functions (e.g., logger.py)
+│       └── __init__.py
 ├── static/                 # Static assets
 │   ├── js/                 # JavaScript files
 │   └── styles/             # CSS files
 ├── templates/              # Jinja2 HTML templates
-├── plantuml/               # UML diagrams
-├── run.py                  # Application entry point
-├── db_init.py              # Database initialization script
-├── docker-compose.yaml     # Docker Compose configuration
-└── Makefile                # Make commands for development
+│   └── components/         # Reusable template components (e.g., header.html)
+├── tests/                  # Test suite
+├── db_init.py              # Main script to initialize the database
+├── docker-compose.yaml     # Docker Compose configuration for services
+├── Makefile                # Make commands for common development tasks
+├── poetry.lock             # Poetry: exact versions of dependencies
+├── pyproject.toml          # Poetry: project metadata and dependencies
+├── README.md               # This file: project overview and instructions
+└── run.py                  # Application entry point to start the server
 ```
 
 ## Architecture
