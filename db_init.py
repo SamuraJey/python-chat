@@ -1,6 +1,6 @@
-from src.app import create_app
-from src.database import db
-from src.database.db_init import initialize_db
+from python_chat.app import create_app
+from python_chat.database import db
+from python_chat.database.db_init import initialize_db
 
 if __name__ == "__main__":
     app = create_app()
