@@ -28,12 +28,39 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   const [error, setError] = useState<string | null>(null);
 
   const { isAuthenticated } = useAuth();
-  const { messages: socketMessages, sendMessage: socketSendMessage, joinChat, leaveChat } = useSocket({
+  const {
+    messages: socketMessages,
+    sendMessage: socketSendMessage,
+    joinChat,
+    leaveChat
+  } = useSocket({
     chatId: currentChat?.id,
   });
 
-  // Combine API messages and socket messages
-  const messages = [...formatApiMessagesToSocketMessages(apiMessages), ...socketMessages];
+  // Combine API messages and socket messages, and eliminate any duplicate messages
+  const combinedMessages = [...formatApiMessagesToSocketMessages(apiMessages), ...socketMessages];
+
+  // Create a Map to deduplicate messages based on ID - handles the case where we might receive
+  // the same message from both API and socket
+  const messagesMap = new Map();
+  combinedMessages.forEach(msg => {
+    if (msg.id) {
+      messagesMap.set(msg.id, msg);
+    } else if (msg.content) {
+      // For messages without IDs (e.g., temporary ones), just include them
+      // Use content + username + timestamp as a pseudo-id
+      const pseudoId = `${msg.content}-${msg.username}-${msg.timestamp || Date.now()}`;
+      messagesMap.set(pseudoId, msg);
+    }
+  });
+
+  // Convert back to array and sort by timestamp
+  const messages = Array.from(messagesMap.values())
+    .sort((a, b) => {
+      const timeA = a.timestamp ? new Date(a.timestamp).getTime() : 0;
+      const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
+      return timeA - timeB;
+    });
 
   // Load user chats on mount if authenticated
   useEffect(() => {
@@ -49,6 +76,17 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       loadChatMembers(currentChat.id);
     }
   }, [currentChat]);
+
+  // Reload messages when we receive new ones via socket
+  // This ensures we have the complete message data with ID
+  useEffect(() => {
+    if (socketMessages.length > 0 && currentChat) {
+      // Only reload if we have new messages
+      if (socketMessages[socketMessages.length - 1]?.id) {
+        loadChatMessages(currentChat.id);
+      }
+    }
+  }, [socketMessages.length]);
 
   const loadChats = async () => {
     setLoading(true);
@@ -120,7 +158,16 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
+    if (!content.trim()) {
+      setError('Cannot send empty message');
+      return;
+    }
+
+    // Send the message via socket
     socketSendMessage(content);
+
+    // The socket will emit the message back to us when sent successfully,
+    // and our useEffect hook will reload the messages
   };
 
   const createChat = async (name: string, isGroup: boolean, userIds: number[]): Promise<Chat | null> => {

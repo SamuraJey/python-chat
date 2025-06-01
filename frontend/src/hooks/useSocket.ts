@@ -55,9 +55,16 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
       console.log('Username set:', data.username);
     });
 
-    socketInstance.on('message', (data: SocketMessage) => {
+    socketInstance.on('receive_message', (data) => {
       console.log('Message received:', data);
-      setMessages((prevMessages) => [...prevMessages, data]);
+      // Convert backend message format to our frontend format
+      const socketMessage: SocketMessage = {
+        id: data.message_id,
+        content: data.message,
+        username: data.username,
+        timestamp: new Date(data.timestamp).toISOString()
+      };
+      setMessages((prevMessages) => [...prevMessages, socketMessage]);
     });
 
     socketInstance.on('online_users', (data) => {
@@ -93,7 +100,7 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
     if (options.chatId) {
       socket.emit('send_message', {
         chat_id: options.chatId,
-        content,
+        message: content, // Change content to message to match backend expectation
       });
     } else {
       console.error('Cannot send message: no chat ID provided');
@@ -144,8 +151,8 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
 export const formatApiMessagesToSocketMessages = (apiMessages: ChatMessage[]): SocketMessage[] => {
   return apiMessages.map(message => ({
     id: message.id,
-    content: message.content,
-    username: message.username,
-    timestamp: message.timestamp,
+    content: message.content || '', // Handle potentially empty content
+    username: message.username || 'Unknown User', // Provide a fallback for username
+    timestamp: message.timestamp || new Date().toISOString(), // Ensure we have a timestamp
   }));
 };

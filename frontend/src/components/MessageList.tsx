@@ -33,7 +33,10 @@ export const MessageList: React.FC = () => {
           <div className="no-messages">No messages yet</div>
         ) : (
           messages.map((message, index) => (
-            <MessageItem key={message.id || index} message={message} />
+            <MessageItem
+              key={message.id || `msg-${index}-${message.username}-${Date.now()}`}
+              message={message}
+            />
           ))
         )}
         <div ref={messagesEndRef} />
@@ -52,13 +55,22 @@ const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
     ? new Date(message.timestamp).toLocaleTimeString()
     : '';
 
+  // Handle potential null or undefined content
+  const messageContent = message.content || '';
+
+  // Skip rendering empty messages
+  if (!messageContent.trim()) {
+    console.warn('Empty message skipped', message);
+    return null;
+  }
+
   return (
     <div className="message-item">
       <div className="message-header">
-        <span className="message-author">{message.username}</span>
+        <span className="message-author">{message.username || 'Unknown'}</span>
         {formattedTime && <span className="message-time">{formattedTime}</span>}
       </div>
-      <div className="message-content">{message.content}</div>
+      <div className="message-content">{messageContent}</div>
     </div>
   );
 };
