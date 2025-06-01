@@ -11,6 +11,7 @@ interface ChatContextType {
   loading: boolean;
   error: string | null;
   selectChat: (chatId: number) => void;
+  clearChat: () => void; // Add a method to clear current chat state
   sendMessage: (content: string) => void;
   createChat: (name: string, isGroup: boolean, userIds: number[]) => Promise<Chat | null>;
   searchUsers: (query: string) => Promise<{ id: number; username: string }[]>;
@@ -35,10 +36,18 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     leaveChat
   } = useSocket({
     chatId: currentChat?.id,
+  });  // Combine API messages and socket messages
+  const apiSocketMessages = formatApiMessagesToSocketMessages(apiMessages);
+
+  // Add current chat ID to socket messages if not already present
+  const taggedSocketMessages = socketMessages.map(msg => {
+    if (!msg.chatId && currentChat) {
+      return { ...msg, chatId: currentChat.id };
+    }
+    return msg;
   });
 
-  // Combine API messages and socket messages, and eliminate any duplicate messages
-  const combinedMessages = [...formatApiMessagesToSocketMessages(apiMessages), ...socketMessages];
+  const combinedMessages = [...apiSocketMessages, ...taggedSocketMessages];
 
   // Create a Map to deduplicate messages based on ID - handles the case where we might receive
   // the same message from both API and socket
@@ -48,8 +57,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       messagesMap.set(msg.id, msg);
     } else if (msg.content) {
       // For messages without IDs (e.g., temporary ones), just include them
-      // Use content + username + timestamp as a pseudo-id
-      const pseudoId = `${msg.content}-${msg.username}-${msg.timestamp || Date.now()}`;
+      // Use content + username + timestamp + chatId as a pseudo-id
+      const pseudoId = `${msg.content}-${msg.username}-${msg.timestamp || Date.now()}-${msg.chatId || 'unknown'}`;
       messagesMap.set(pseudoId, msg);
     }
   });
@@ -61,6 +70,8 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
       const timeB = b.timestamp ? new Date(b.timestamp).getTime() : 0;
       return timeA - timeB;
     });
+
+  // Removed debug logging effect
 
   // Load user chats on mount if authenticated
   useEffect(() => {
@@ -81,12 +92,31 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   // This ensures we have the complete message data with ID
   useEffect(() => {
     if (socketMessages.length > 0 && currentChat) {
-      // Only reload if we have new messages
-      if (socketMessages[socketMessages.length - 1]?.id) {
-        loadChatMessages(currentChat.id);
-      }
+      console.log(`Received new socket message for chat ${currentChat.id}`);
+      // No API call here; rely on WebSocket updates
     }
-  }, [socketMessages.length]);
+  }, [socketMessages]);
+
+  // Load messages for the selected chat
+  useEffect(() => {
+    if (currentChat) {
+      setLoading(true);
+      chatApi
+        .getChatMessages(currentChat.id) // Use the correct method
+        .then((response) => {
+          setApiMessages(response.data || []); // Provide fallback for undefined data
+        })
+        .catch((err: Error) => {
+          setError('Failed to load messages');
+          console.error(err);
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+    } else {
+      setApiMessages([]); // Clear messages when no chat is selected
+    }
+  }, [currentChat]);
 
   const loadChats = async () => {
     setLoading(true);
@@ -137,6 +167,12 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const selectChat = (chatId: number) => {
+    // Check if the selected chat is already the current chat
+    if (currentChat?.id === chatId) {
+      console.log('Already in the selected chat, no action taken');
+      return;
+    }
+
     const chat = chats.find((c) => c.id === chatId);
     if (chat) {
       // Leave current chat if any
@@ -144,11 +180,27 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
         leaveChat();
       }
 
+      // Clear any existing API messages
+      setApiMessages([]);
+
       // Set new current chat
       setCurrentChat(chat);
 
       // Join new chat room
       joinChat(chatId);
+    }
+  };
+
+  // Function to clear current chat state
+  const clearChat = () => {
+    if (currentChat) {
+      // Leave current chat room via socket
+      leaveChat();
+
+      // Clear current chat and related data
+      setCurrentChat(null);
+      setApiMessages([]);
+      // Removed console.log to reduce noise
     }
   };
 
@@ -166,8 +218,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     // Send the message via socket
     socketSendMessage(content);
 
-    // The socket will emit the message back to us when sent successfully,
-    // and our useEffect hook will reload the messages
+    console.log('Message sent, waiting for server echo');
   };
 
   const createChat = async (name: string, isGroup: boolean, userIds: number[]): Promise<Chat | null> => {
@@ -247,6 +298,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
     loading,
     error,
     selectChat,
+    clearChat, // Add the new method to the context value
     sendMessage,
     createChat,
     searchUsers,

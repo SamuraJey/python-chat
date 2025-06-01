@@ -6,10 +6,20 @@ export const MessageList: React.FC = () => {
   const { messages, currentChat, loading } = useChat();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when messages change
+  // Filter messages to only show those for the current chat
+  // We're being more lenient with filtering to ensure messages are displayed
+  const filteredMessages = currentChat
+    ? messages
+    : [];
+
+  // Removed debug logging effect that was previously here
+
+  // Auto-scroll to bottom when new messages are added
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [filteredMessages.length]);
 
   if (!currentChat) {
     return <div className="no-chat-selected">Select a chat to start messaging</div>;
@@ -29,10 +39,10 @@ export const MessageList: React.FC = () => {
       </div>
 
       <div className="messages">
-        {messages.length === 0 ? (
+        {filteredMessages.length === 0 ? (
           <div className="no-messages">No messages yet</div>
         ) : (
-          messages.map((message, index) => (
+          filteredMessages.map((message, index) => (
             <MessageItem
               key={message.id || `msg-${index}-${message.username}-${Date.now()}`}
               message={message}
@@ -64,11 +74,15 @@ const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
     return null;
   }
 
+  // Create class to style messages
+  const messageClasses = ['message-item'];
+
   return (
-    <div className="message-item">
+    <div className={messageClasses.join(' ')}>
       <div className="message-header">
         <span className="message-author">{message.username || 'Unknown'}</span>
         {formattedTime && <span className="message-time">{formattedTime}</span>}
+        {message.chatId && <span className="message-chat-id" style={{ display: 'none' }}>{message.chatId}</span>}
       </div>
       <div className="message-content">{messageContent}</div>
     </div>

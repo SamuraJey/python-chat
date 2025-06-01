@@ -48,6 +48,7 @@ def get_chat_messages(chat_id):
                 "content": msg.ChatMessage.content,
                 "username": msg.username if msg.username else "[Deleted User]",
                 "timestamp": msg.ChatMessage.sent_at.isoformat(),
+                "chat_id": chat_id,  # Include chat_id for message filtering on frontend
             }
             for msg in messages
         ]

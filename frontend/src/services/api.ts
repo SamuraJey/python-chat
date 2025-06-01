@@ -35,6 +35,7 @@ export interface ChatMessage {
   content: string;
   username: string;
   timestamp: string;
+  chat_id?: number; // Add chat_id field for tracking messages
 }
 
 export interface ChatMember {
@@ -188,7 +189,14 @@ export const chatApi = {
       }
 
       const { messages } = await response.json();
-      return { success: true, data: messages };
+
+      // Add chat_id to each message to help with filtering
+      const messagesWithChatId = messages.map((msg: any) => ({
+        ...msg,
+        chat_id: chatId, // Explicitly add chat ID to each message
+      }));
+
+      return { success: true, data: messagesWithChatId };
     } catch (error) {
       console.error('Error fetching chat messages:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch chat messages' };

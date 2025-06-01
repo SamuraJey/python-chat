@@ -102,6 +102,7 @@ def init_socketio(socketio):
                     "message": message,
                     "timestamp": int(time.time() * 1000),
                     "message_id": message_obj.id,  # Add message ID to help with deduplication
+                    "chat_id": chat_id,  # Include chat_id to filter messages by chat
                 },
                 room=room_name,
                 broadcast=True,

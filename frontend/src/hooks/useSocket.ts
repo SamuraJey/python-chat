@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { type ChatMessage } from '../services/api';
 
@@ -11,6 +11,7 @@ export interface SocketMessage {
   content: string;
   username: string;
   timestamp?: string;
+  chatId?: number; // Add chatId to track which chat the message belongs to
 }
 
 interface UseSocketReturn {
@@ -26,10 +27,16 @@ interface UseSocketReturn {
 const SOCKET_URL = '';
 
 export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
+  const optionsRef = useRef(options); // Use a ref to track options
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connected, setConnected] = useState<boolean>(false);
   const [messages, setMessages] = useState<SocketMessage[]>([]);
   const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
+
+  // Keep ref updated with latest options
+  useEffect(() => {
+    optionsRef.current = options;
+  }, [options]);
 
   // Initialize socket connection
   useEffect(() => {
@@ -38,12 +45,12 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
     });
 
     socketInstance.on('connect', () => {
-      console.log('Socket connected successfully');
+      // Reduced logging
       setConnected(true);
     });
 
     socketInstance.on('disconnect', () => {
-      console.log('Socket disconnected');
+      // Reduced logging
       setConnected(false);
     });
 
@@ -51,34 +58,50 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
       console.error('Socket error:', error);
     });
 
-    socketInstance.on('set_username', (data) => {
-      console.log('Username set:', data.username);
+    socketInstance.on('set_username', (_data) => {
+      // Reduced logging - using underscore to mark unused parameter
     });
 
     socketInstance.on('receive_message', (data) => {
       console.log('Message received:', data);
+      console.log('Current chatId:', optionsRef.current.chatId);
+
       // Convert backend message format to our frontend format
       const socketMessage: SocketMessage = {
         id: data.message_id,
         content: data.message,
         username: data.username,
-        timestamp: new Date(data.timestamp).toISOString()
+        timestamp: new Date(data.timestamp).toISOString(),
+        chatId: data.chat_id || optionsRef.current.chatId // Use chat_id from data if available, fallback to current chatId
       };
-      setMessages((prevMessages) => [...prevMessages, socketMessage]);
+
+      // Only add messages to current chat's messages
+      if (optionsRef.current.chatId && optionsRef.current.chatId === socketMessage.chatId) {
+        console.log(`Adding message to chat ${optionsRef.current.chatId}, message chatId: ${socketMessage.chatId}`);
+        setMessages((prevMessages) => {
+          // Replace temporary local message if it exists
+          const filteredMessages = prevMessages.filter(
+            (msg) => !(msg.content === socketMessage.content && msg.username === 'You')
+          );
+          return [...filteredMessages, socketMessage];
+        });
+      } else {
+        console.warn(`Ignoring message: no current chat selected or chatId mismatch. Expected chatId: ${optionsRef.current.chatId}, received chatId: ${socketMessage.chatId}`);
+      }
     });
 
     socketInstance.on('online_users', (data) => {
-      console.log('Online users:', data.users);
+      // Update online users without logging
       setOnlineUsers(data.users);
     });
 
     // Join chat room if chatId is provided initially
     if (options.chatId) {
-      console.log(`Joining chat ${options.chatId}`);
+      // Join without logging
       socketInstance.emit('join', { chat_id: options.chatId });
 
-      socketInstance.on('joined_chat', (data) => {
-        console.log('Successfully joined chat room:', data.chat_id);
+      socketInstance.on('joined_chat', (_data) => {
+        // No longer logging joins
       });
     }
 
@@ -97,9 +120,20 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
       return;
     }
 
-    if (options.chatId) {
+    if (optionsRef.current.chatId) {
+      // Add local message immediately for instant feedback
+      const localMessage: SocketMessage = {
+        content: content,
+        username: 'You', // Will be replaced by actual username when server confirms
+        timestamp: new Date().toISOString(),
+        chatId: optionsRef.current.chatId
+      };
+
+      setMessages(prev => [...prev, localMessage]);
+
+      // Then send to server
       socket.emit('send_message', {
-        chat_id: options.chatId,
+        chat_id: optionsRef.current.chatId,
         message: content, // Change content to message to match backend expectation
       });
     } else {
@@ -115,25 +149,32 @@ export const useSocket = (options: UseSocketOptions = {}): UseSocketReturn => {
     }
 
     // Leave current chat first if in one
-    if (options.chatId) {
-      socket.emit('leave', { chat_id: options.chatId });
+    if (optionsRef.current.chatId) {
+      socket.emit('leave', { chat_id: optionsRef.current.chatId });
     }
 
-    // Join new chat
-    socket.emit('join', { chat_id: chatId });
+    // Clear existing socket messages when changing chats
+    setMessages([]);
 
-    // Update options
-    options.chatId = chatId;
+    // Join new chat (only if it's a valid ID)
+    if (chatId > 0) {
+      socket.emit('join', { chat_id: chatId });
+      optionsRef.current.chatId = chatId; // Update ref directly
+      console.log(`Joined chat ${chatId}`);
+    } else {
+      optionsRef.current.chatId = undefined;
+      console.log('Left chat');
+    }
   };
 
   // Function to leave current chat
   const leaveChat = () => {
-    if (!socket || !connected || !options.chatId) {
+    if (!socket || !connected || !optionsRef.current.chatId) {
       return;
     }
 
-    socket.emit('leave', { chat_id: options.chatId });
-    options.chatId = undefined;
+    socket.emit('leave', { chat_id: optionsRef.current.chatId });
+    optionsRef.current.chatId = undefined;
   };
 
   return {
@@ -154,5 +195,6 @@ export const formatApiMessagesToSocketMessages = (apiMessages: ChatMessage[]): S
     content: message.content || '', // Handle potentially empty content
     username: message.username || 'Unknown User', // Provide a fallback for username
     timestamp: message.timestamp || new Date().toISOString(), // Ensure we have a timestamp
+    chatId: message.chat_id, // Include chat ID from API messages
   }));
 };

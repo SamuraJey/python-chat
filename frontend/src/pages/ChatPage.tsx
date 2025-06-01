@@ -1,13 +1,24 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChatSidebar } from '../components/ChatSidebar';
 import { MessageList } from '../components/MessageList';
 import { MessageInput } from '../components/MessageInput';
 import { MembersPanel } from '../components/MembersPanel';
 import { useAuth } from '../context/AuthContext';
+import { useChat } from '../context/ChatContext';
 
 export const ChatPage: React.FC = () => {
   const { user, logout } = useAuth();
+  const { clearChat } = useChat();
   const [showMembers, setShowMembers] = useState(false);
+
+  // Cleanup effect: clear chat state when unmounting
+  useEffect(() => {
+    // This effect only runs on mount/unmount
+    return () => {
+      // We're removing console.log to reduce noise
+      clearChat();
+    };
+  }, []); // Empty dependency array - only run on mount/unmount
 
   const handleLogout = async () => {
     await logout();
