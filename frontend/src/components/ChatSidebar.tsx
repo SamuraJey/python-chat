@@ -83,7 +83,7 @@ export const ChatSidebar: React.FC = () => {
             onChange={(e) => setNewChatName(e.target.value)}
           />
 
-          <div className="form-group checkbox">
+          <div className="checkbox-group">
             <input
               type="checkbox"
               id="is-group"
@@ -119,8 +119,8 @@ export const ChatSidebar: React.FC = () => {
               <ul>
                 {selectedUsers.map(user => (
                   <li key={user.id}>
-                    {user.username}
-                    <button onClick={() => handleRemoveUser(user.id)}>X</button>
+                    <span className="user-name">{user.username}</span>
+                    <button onClick={() => handleRemoveUser(user.id)}>×</button>
                   </li>
                 ))}
               </ul>
@@ -148,9 +148,14 @@ export const ChatSidebar: React.FC = () => {
                 onClick={() => selectChat(chat.id)}
               >
                 <div className="chat-item">
-                  <span className={chat.is_group ? 'group-chat' : 'private-chat'}>
+                  <div className={`chat-name ${chat.is_group ? 'group-chat' : 'private-chat'}`}>
                     {chat.name}
-                  </span>
+                  </div>
+                  <div className="chat-meta">
+                    <span className="chat-type">
+                      {chat.is_group ? 'Group' : 'Private'}
+                    </span>
+                  </div>
                 </div>
               </li>
             ))}

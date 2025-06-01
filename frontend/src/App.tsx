@@ -8,7 +8,14 @@ function AppContent() {
   const { isAuthenticated, isLoading } = useAuth();
 
   if (isLoading) {
-    return <div className="loading">Loading...</div>;
+    return (
+      <div className="loading-screen">
+        <div className="loading-spinner">
+          <div className="spinner"></div>
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
   }
 
   return isAuthenticated ? <ChatPage /> : <AuthPage />;

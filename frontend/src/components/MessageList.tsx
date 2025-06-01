@@ -1,8 +1,17 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react'; // Removed useState
 import { useChat } from '../context/ChatContext';
+import { useAuth } from '../context/AuthContext';
 import type { SocketMessage } from '../hooks/useSocket';
+import { faUsers } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
-export const MessageList: React.FC = () => {
+
+interface MessageListProps {
+  showMembers: boolean;
+  setShowMembers: React.Dispatch<React.SetStateAction<boolean>>;
+}
+
+export const MessageList: React.FC<MessageListProps> = ({ showMembers, setShowMembers }) => {
   const { messages, currentChat, loading } = useChat();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -11,8 +20,6 @@ export const MessageList: React.FC = () => {
   const filteredMessages = currentChat
     ? messages
     : [];
-
-  // Removed debug logging effect that was previously here
 
   // Auto-scroll to bottom when new messages are added
   useEffect(() => {
@@ -31,10 +38,21 @@ export const MessageList: React.FC = () => {
 
   return (
     <div className="message-list">
-      <div className="chat-header">
-        <h3>{currentChat.name}</h3>
-        <div className="chat-type">
-          {currentChat.is_group ? 'Group Chat' : 'Private Chat'}
+      <div className="chat-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+        <div className="chat-details"> {/* Wrapper for title and type */}
+          <h3>{currentChat.name}</h3>
+          <div className="chat-type">
+            {currentChat.is_group ? 'Group Chat' : 'Private Chat'}
+          </div>
+        </div>
+        <div className="chat-actions">
+          <button
+            className="show-members-button"
+            onClick={() => setShowMembers(!showMembers)} // Toggle members panel
+            title={showMembers ? "Hide Members" : "Show Members"}
+          >
+            <FontAwesomeIcon icon={faUsers} /> {/* Use FontAwesomeIcon component */}
+          </button>
         </div>
       </div>
 
@@ -60,6 +78,8 @@ interface MessageItemProps {
 }
 
 const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
+  const { user } = useAuth();
+
   // Format timestamp if available
   const formattedTime = message.timestamp
     ? new Date(message.timestamp).toLocaleTimeString()
@@ -74,17 +94,30 @@ const MessageItem: React.FC<MessageItemProps> = ({ message }) => {
     return null;
   }
 
-  // Create class to style messages
+  // Check if this is the current user's message
+  const isOwnMessage = user && message.username === user.username;
+
+  // Create classes for styling
   const messageClasses = ['message-item'];
+  if (isOwnMessage) {
+    messageClasses.push('own-message');
+  }
+
+  const bubbleClasses = ['message-bubble'];
+  if (isOwnMessage) {
+    bubbleClasses.push('own-message');
+  }
 
   return (
     <div className={messageClasses.join(' ')}>
-      <div className="message-header">
-        <span className="message-author">{message.username || 'Unknown'}</span>
-        {formattedTime && <span className="message-time">{formattedTime}</span>}
-        {message.chatId && <span className="message-chat-id" style={{ display: 'none' }}>{message.chatId}</span>}
+      <div className={bubbleClasses.join(' ')}>
+        <div className="message-header">
+          <span className="message-author">{message.username || 'Unknown'}</span>
+          {formattedTime && <span className="message-time">{formattedTime}</span>}
+          {message.chatId && <span className="message-chat-id" style={{ display: 'none' }}>{message.chatId}</span>}
+        </div>
+        <div className="message-content">{messageContent}</div>
       </div>
-      <div className="message-content">{messageContent}</div>
     </div>
   );
 };

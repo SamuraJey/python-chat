@@ -22,12 +22,20 @@ export const MessageInput: React.FC = () => {
     <form className="message-input" onSubmit={handleSubmit}>
       <input
         type="text"
+        className="input-modern"
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         placeholder="Type your message..."
         disabled={!currentChat}
       />
-      <button type="submit" disabled={!message.trim()}>Send</button>
+      <button
+        type="submit"
+        className="btn-primary btn-icon"
+        disabled={!message.trim()}
+        title="Send message"
+      >
+        Send
+      </button>
     </form>
   );
 };

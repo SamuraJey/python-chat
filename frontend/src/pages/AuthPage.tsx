@@ -15,18 +15,28 @@ export const AuthPage: React.FC = () => {
         {showLogin ? (
           <>
             <LoginForm />
-            <p className="auth-toggle">
-              Don't have an account?{' '}
-              <button onClick={() => setShowLogin(false)}>Register</button>
-            </p>
+            <div className="auth-toggle">
+              <span>Don't have an account?</span>
+              <button
+                className="btn-ghost"
+                onClick={() => setShowLogin(false)}
+              >
+                Create Account
+              </button>
+            </div>
           </>
         ) : (
           <>
             <RegisterForm onSuccess={() => setShowLogin(true)} />
-            <p className="auth-toggle">
-              Already have an account?{' '}
-              <button onClick={() => setShowLogin(true)}>Login</button>
-            </p>
+            <div className="auth-toggle">
+              <span>Already have an account?</span>
+              <button
+                className="btn-ghost"
+                onClick={() => setShowLogin(true)}
+              >
+                Sign In
+              </button>
+            </div>
           </>
         )}
       </div>

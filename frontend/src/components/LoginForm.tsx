@@ -29,46 +29,55 @@ export const LoginForm: React.FC<LoginFormProps> = ({ onSuccess }) => {
   };
 
   return (
-    <div className="login-form">
-      <h2>Login</h2>
+    <div className="auth-form">
+      <h2 className="auth-title">Welcome Back</h2>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && <div className="alert alert-error">{error}</div>}
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="auth-form-content">
         <div className="form-group">
-          <label htmlFor="username">Username</label>
+          <label htmlFor="username" className="form-label">Username</label>
           <input
             type="text"
             id="username"
+            className="input-modern"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            placeholder="Enter your username"
             required
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="password">Password</label>
+          <label htmlFor="password" className="form-label">Password</label>
           <input
             type="password"
             id="password"
+            className="input-modern"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter your password"
             required
           />
         </div>
 
-        <div className="form-group checkbox">
+        <div className="form-group checkbox-group">
           <input
             type="checkbox"
             id="remember"
+            className="checkbox-modern"
             checked={remember}
             onChange={(e) => setRemember(e.target.checked)}
           />
-          <label htmlFor="remember">Remember me</label>
+          <label htmlFor="remember" className="checkbox-label">Remember me</label>
         </div>
 
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? 'Logging in...' : 'Login'}
+        <button
+          type="submit"
+          className="btn-primary btn-large"
+          disabled={isLoading}
+        >
+          {isLoading ? 'Signing in...' : 'Sign In'}
         </button>
       </form>
     </div>

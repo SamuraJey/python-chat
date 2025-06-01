@@ -25,7 +25,7 @@ export const ChatPage: React.FC = () => {
   };
 
   return (
-    <div className="chat-page">
+    <div className="chat-page fade-in">
       <header className="app-header">
         <h1>Python Chat</h1>
         <div className="user-info">
@@ -42,19 +42,13 @@ export const ChatPage: React.FC = () => {
         <ChatSidebar />
 
         <div className="chat-area">
-          <MessageList />
+          <MessageList showMembers={showMembers} setShowMembers={setShowMembers} />
           <MessageInput />
-
-          <div className="members-toggle">
-            <button onClick={() => setShowMembers(!showMembers)}>
-              {showMembers ? 'Hide Members' : 'Show Members'}
-            </button>
-          </div>
         </div>
 
         {showMembers && (
-          <div className="members-area">
-            <MembersPanel />
+          <div className="members-area slide-in-right">
+            <MembersPanel setShowMembers={setShowMembers} />
           </div>
         )}
       </main>

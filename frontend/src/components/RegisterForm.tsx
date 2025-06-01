@@ -38,48 +38,58 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({ onSuccess }) => {
   };
 
   return (
-    <div className="register-form">
-      <h2>Register</h2>
+    <div className="auth-form">
+      <h2 className="auth-title">Create Account</h2>
 
-      {error && <div className="error-message">{error}</div>}
+      {error && <div className="alert alert-error">{error}</div>}
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="auth-form-content">
         <div className="form-group">
-          <label htmlFor="username">Username</label>
+          <label htmlFor="username" className="form-label">Username</label>
           <input
             type="text"
             id="username"
+            className="input-modern"
             value={username}
             onChange={(e) => setUsername(e.target.value)}
+            placeholder="Choose a username"
             required
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="password">Password</label>
+          <label htmlFor="password" className="form-label">Password</label>
           <input
             type="password"
             id="password"
+            className="input-modern"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            placeholder="Create a password"
             required
           />
         </div>
 
         <div className="form-group">
-          <label htmlFor="password2">Confirm Password</label>
+          <label htmlFor="password2" className="form-label">Confirm Password</label>
           <input
             type="password"
             id="password2"
+            className="input-modern"
             value={password2}
             onChange={(e) => setPassword2(e.target.value)}
+            placeholder="Confirm your password"
             required
           />
-          {passwordError && <div className="error-message">{passwordError}</div>}
+          {passwordError && <div className="field-error">{passwordError}</div>}
         </div>
 
-        <button type="submit" disabled={isLoading}>
-          {isLoading ? 'Registering...' : 'Register'}
+        <button
+          type="submit"
+          className="btn-primary btn-large"
+          disabled={isLoading}
+        >
+          {isLoading ? 'Creating Account...' : 'Create Account'}
         </button>
       </form>
     </div>
