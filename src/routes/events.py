@@ -70,7 +70,7 @@ def init_socketio(socketio):
             from src.database.models.chat_member import ChatMember
 
             # Проверяем, забанен ли пользователь
-            banned_check = db.session.execute(select(ChatMember).filter(ChatMember.chat_id == chat_id, ChatMember.user_id == user["user_id"], ChatMember.is_banned == True)).scalar_one_or_none()
+            banned_check = db.session.execute(select(ChatMember).filter(ChatMember.chat_id == chat_id, ChatMember.user_id == user["user_id"], ChatMember.is_banned)).scalar_one_or_none()
 
             if banned_check:
                 current_app.logger.warning(f"Banned user {user['username']} attempted to send message to chat {chat_id}")
@@ -132,7 +132,7 @@ def init_socketio(socketio):
             from src.database.models.chat_member import ChatMember
 
             # Check if the user exists in the chat member list and is banned
-            banned_check = db.session.execute(select(ChatMember).filter(ChatMember.chat_id == chat_id, ChatMember.user_id == user["user_id"], ChatMember.is_banned == True)).scalar_one_or_none()
+            banned_check = db.session.execute(select(ChatMember).filter(ChatMember.chat_id == chat_id, ChatMember.user_id == user["user_id"], ChatMember.is_banned)).scalar_one_or_none()
 
             if banned_check:
                 current_app.logger.warning(f"Banned user {user['username']} attempted to join chat {chat_id}")

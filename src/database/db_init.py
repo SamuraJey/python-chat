@@ -11,12 +11,11 @@ from src.database.models.user import User
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../..")))
 
 
-# Configure logging
 logging.basicConfig(level=logging.DEBUG, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
-def initialize_db(app, db):  # pragma: no cover
+def initialize_db(app, db):
     """Initialize database with sample data"""
     with app.app_context():
         try:

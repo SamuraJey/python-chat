@@ -16,10 +16,8 @@ def profile():
     """Личный кабинет пользователя"""
     # Получаем статистику пользователя
     chats_count_stmt = select(func.count(ChatMember.user_id)).filter(ChatMember.user_id == current_user.id)
-
-    # chats_count_stmt = select(ChatMember).filter(ChatMember.user_id == current_user.id)
     messages_count_stmt = select(func.count(ChatMessage.user_id)).filter(ChatMessage.user_id == current_user.id)
-    # messages_count_stmt = select(ChatMessage).filter(ChatMessage.user_id == current_user.id)
+
     current_app.logger.debug(f"Query for chats count: {chats_count_stmt}")
     current_app.logger.debug(f"Query for messages count: {messages_count_stmt}")
 
