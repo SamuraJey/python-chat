@@ -20,7 +20,8 @@ jobs:
         python-version: ${{ matrix.python-version }}
         cache: 'poetry' # Cache Poetry dependencies
     - name: Install dependencies
-      run: poetry install --no-root --sync
+      run: |
+        poetry sync --no-root
     - name: Run linters
       run: |
         poetry run make lint
@@ -42,7 +43,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
         cache: 'poetry' # Cache Poetry dependencies
     - name: Install dependencies
-      run: poetry install --sync
+      run: poetry sync
     - name: Run tests and check coverage
       run: |
         poetry run pytest ./tests --cov=python_chat --cov=./tests --cov-report term-missing --cov-fail-under=85
