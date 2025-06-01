@@ -8,9 +8,9 @@ from flask import Flask
 
 
 def setup_logger(app: Flask) -> logging.Logger:  # pragma: no cover
-    logs_dir = os.path.join(app.root_path, "logs")  # Папка logs рядом с Flask-приложением
-    Path(logs_dir).mkdir(parents=True, exist_ok=True)  # Создаём папку, если её нет
-    
+    logs_dir = os.path.join(app.root_path, "logs")
+    Path(logs_dir).mkdir(parents=True, exist_ok=True)
+
     formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
     log_file = os.path.join(logs_dir, "app.log")
     file_handler = RotatingFileHandler(log_file, maxBytes=5000, backupCount=5)
