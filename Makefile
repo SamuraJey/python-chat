@@ -45,7 +45,7 @@ mypy:
 lint: ruff-lint mypy
 
 test:
-	$(VENV)/bin/pytest src/tests
+	$(VENV)/bin/pytest ./tests
 
 test-cov:
-	$(VENV)/bin/pytest src/tests --cov=src --cov=src/tests
+	$(VENV)/bin/pytest ./tests --cov=python_chat --cov=./tests --cov-report term-missing --cov-fail-under=85
