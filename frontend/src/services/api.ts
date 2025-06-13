@@ -49,6 +49,13 @@ export interface User {
   username: string;
 }
 
+// Password change request
+export interface ChangePasswordRequest {
+  current_password: string;
+  new_password: string;
+  confirm_password: string;
+}
+
 // API client for authentication
 export const authApi = {
   // Login user
@@ -413,6 +420,66 @@ export const analyticsApi = {
     } catch (error) {
       console.error('Error fetching user activity:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch user activity' };
+    }
+  },
+};
+
+// API client for user profile
+export const userApi = {
+  // Get user stats for profile
+  getUserStats: async (): Promise<ApiResponse> => {
+    try {
+      const response = await fetch(`${API_URL}/api/user/stats`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch user stats');
+      }
+
+      const data = await response.json();
+      return {
+        success: true,
+        data
+      };
+    } catch (error) {
+      console.error('Error fetching user stats:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch user statistics'
+      };
+    }
+  },
+
+  // Change password
+  changePassword: async (passwordData: ChangePasswordRequest): Promise<ApiResponse> => {
+    try {
+      const response = await fetch(`${API_URL}/api/user/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(passwordData),
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to change password');
+      }
+
+      return {
+        success: true,
+        data
+      };
+    } catch (error) {
+      console.error('Password change error:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Password change failed'
+      };
     }
   },
 };

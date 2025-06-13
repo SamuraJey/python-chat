@@ -14,8 +14,12 @@ import {
   faArrowLeft,
   faShieldAlt,
   faUser,
-  faHome
+  faHome,
+  faCheck
 } from '@fortawesome/free-solid-svg-icons';
+import { ChangePasswordForm } from '../components/ChangePasswordForm';
+import { userApi } from '../services/api';
+import type { ChangePasswordRequest } from '../services/api';
 import './ProfilePage.css';
 
 interface Stats {
@@ -34,23 +38,19 @@ export const ProfilePage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState<User | null>(null);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [passwordChanged, setPasswordChanged] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
       setLoading(true);
       try {
-        const res = await fetch('/api/user/stats', {
-          credentials: 'include'
-        });
-
-        if (!res.ok) throw new Error('Failed to fetch profile stats');
-
-        const data = await res.json();
-        if (data.success) {
-          setStats(data.stats);
-          setProfile(data.user);
+        const response = await userApi.getUserStats();
+        if (response.success && response.data) {
+          setStats(response.data.stats);
+          setProfile(response.data.user);
         } else {
-          throw new Error(data.error || 'Error loading profile data');
+          throw new Error(response.error || 'Error loading profile data');
         }
       } catch (err: any) {
         setError(err.message || 'Error loading profile');
@@ -61,6 +61,35 @@ export const ProfilePage: React.FC = () => {
 
     fetchProfile();
   }, []);
+
+  // Handle password change
+  const handlePasswordChange = async (currentPassword: string, newPassword: string, confirmPassword: string) => {
+    try {
+      const passwordData: ChangePasswordRequest = {
+        current_password: currentPassword,
+        new_password: newPassword,
+        confirm_password: confirmPassword
+      };
+
+      const response = await userApi.changePassword(passwordData);
+
+      if (!response.success) {
+        throw new Error(response.error || 'Failed to change password');
+      }
+
+      // Reset the form and show success message
+      setShowPasswordForm(false);
+      setPasswordChanged(true);
+
+      // Hide success message after 5 seconds
+      setTimeout(() => {
+        setPasswordChanged(false);
+      }, 5000);
+
+    } catch (err: any) {
+      throw new Error(err.message || 'An error occurred while changing password');
+    }
+  };
 
   if (loading) return (
     <div className="profile-container">
@@ -146,13 +175,27 @@ export const ProfilePage: React.FC = () => {
               <FontAwesomeIcon icon={faKey} />
               <h3>Безопасность</h3>
             </div>
-            <div className="settings-actions">
-              <button className="btn btn-outline" disabled>Изменить пароль</button>
-              <div className="settings-note">
-                <FontAwesomeIcon icon={faInfoCircle} />
-                <span>Функция изменения пароля станет доступна в будущем</span>
+            {showPasswordForm ? (
+              <ChangePasswordForm
+                onSubmit={handlePasswordChange}
+                onCancel={() => setShowPasswordForm(false)}
+              />
+            ) : (
+              <div className="settings-actions">
+                <button
+                  className="btn btn-outline"
+                  onClick={() => setShowPasswordForm(true)}
+                >
+                  Изменить пароль
+                </button>
+                {passwordChanged && (
+                  <div className="settings-success">
+                    <FontAwesomeIcon icon={faCheck} />
+                    <span>Пароль успешно изменен!</span>
+                  </div>
+                )}
               </div>
-            </div>
+            )}
           </div>
         </div>
 

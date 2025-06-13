@@ -51,7 +51,8 @@
 }
 
 .admin-container {
-    max-width: 90%;
+    max-width: 1280px;
+    width: 95%;
     margin: 2rem auto;
     background: var(--bg-glass);
     border-radius: var(--radius-xl);
@@ -118,7 +119,7 @@
 
 .analytics-overview {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 1.5rem;
     margin-bottom: 2rem;
 }
@@ -163,7 +164,7 @@
 
 .charts-section {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 2rem;
     margin-bottom: 3rem;
 }
@@ -201,6 +202,9 @@
     min-height: 300px;
     position: relative;
     flex-grow: 1;
+    background-color: rgba(255, 255, 255, 0.4);
+    border-radius: 8px;
+    overflow: hidden;
 }
 
 .chart-wrapper canvas {
@@ -341,11 +345,29 @@
 }
 
 /* Responsive adjustments */
+@media (max-width: 1280px) {
+    .admin-container {
+        width: 95%;
+    }
+}
+
+@media (max-width: 992px) {
+    .admin-container {
+        width: 98%;
+        padding: 1.75rem;
+    }
+
+    .analytics-overview {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
 @media (max-width: 768px) {
     .admin-container {
         padding: 1.5rem;
-        max-width: 100%;
+        width: 100%;
         margin: 1rem;
+        border-radius: var(--radius-lg);
     }
 
     .analytics-card {
@@ -362,9 +384,6 @@
 
     .chart-container {
         padding: 1rem;
-    }
-
-    canvas {
-        height: 250px !important;
+        height: 350px;
     }
 }
