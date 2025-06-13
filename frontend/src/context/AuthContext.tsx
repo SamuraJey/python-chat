@@ -3,6 +3,7 @@ import { authApi, type LoginRequest, type RegisterRequest } from '../services/ap
 
 interface User {
   username: string;
+  is_admin?: boolean;
 }
 
 interface AuthContextType {
@@ -32,7 +33,10 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         if (response.success && response.data?.isAuthenticated) {
           setIsAuthenticated(true);
-          setUser({ username: response.data.username || 'Current User' });
+          setUser({
+            username: response.data.username || 'Current User',
+            is_admin: response.data.is_admin || false
+          });
         } else {
           setIsAuthenticated(false);
           setUser(null);

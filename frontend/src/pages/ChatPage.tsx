@@ -1,10 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { ChatSidebar } from '../components/ChatSidebar';
 import { MessageList } from '../components/MessageList';
 import { MessageInput } from '../components/MessageInput';
 import { MembersPanel } from '../components/MembersPanel';
 import { useAuth } from '../context/AuthContext';
 import { useChat } from '../context/ChatContext';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faUser, faSignOutAlt, faShieldAlt } from '@fortawesome/free-solid-svg-icons';
+
 
 export const ChatPage: React.FC = () => {
   const { user, logout } = useAuth();
@@ -32,7 +36,17 @@ export const ChatPage: React.FC = () => {
           {user && (
             <>
               <span>Logged in as {user.username}</span>
-              <button onClick={handleLogout}>Logout</button>
+              <Link to="/profile" className="nav-button profile-button">
+                <FontAwesomeIcon icon={faUser} /> Profile
+              </Link>
+              {user.is_admin && (
+                <Link to="/admin" className="nav-button admin-button">
+                  <FontAwesomeIcon icon={faShieldAlt} /> Admin
+                </Link>
+              )}
+              <button onClick={handleLogout} className="nav-button logout-button">
+                <FontAwesomeIcon icon={faSignOutAlt} /> Logout
+              </button>
             </>
           )}
         </div>

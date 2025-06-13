@@ -140,7 +140,8 @@ export const authApi = {
         data: {
           isAuthenticated: data.isAuthenticated,
           username: data.username,
-          userId: data.userId
+          userId: data.userId,
+          is_admin: data.is_admin
         }
       };
     } catch (error) {
@@ -287,6 +288,131 @@ export const chatApi = {
     } catch (error) {
       console.error('Error banning user:', error);
       return { success: false, error: error instanceof Error ? error.message : 'Failed to ban user' };
+    }
+  },
+};
+
+// API client for analytics and admin data
+export interface AnalyticsOverview {
+  total_users: number;
+  total_chats: number;
+  total_messages: number;
+  active_users: number;
+  messages_today: number;
+}
+
+export interface ChartData {
+  labels: string[];
+  datasets: {
+    label: string;
+    data: number[];
+  }[];
+}
+
+export const analyticsApi = {
+  // Get analytics overview data
+  getOverview: async (): Promise<ApiResponse<AnalyticsOverview>> => {
+    try {
+      const response = await fetch(`${API_URL}/api/analytics/overview`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch analytics overview');
+      }
+
+      const data = await response.json();
+      return { success: true, data };
+    } catch (error) {
+      console.error('Error fetching analytics overview:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch analytics overview' };
+    }
+  },
+
+  // Get chat activity data
+  getChatActivity: async (): Promise<ApiResponse<ChartData>> => {
+    try {
+      const response = await fetch(`${API_URL}/api/analytics/chat-activity`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch chat activity');
+      }
+
+      const data = await response.json();
+
+      // Debug the data received from the API
+      console.log("Raw chat activity data from API:", data);
+
+      // Check if the data structure is as expected
+      if (!data.labels || !data.datasets) {
+        console.error("Invalid chat activity data structure", data);
+
+        // If you have no chats yet, create a default/empty structure
+        if ((!data.labels || data.labels.length === 0) && (!data.datasets || !data.datasets.length)) {
+          return {
+            success: true,
+            data: {
+              labels: ["No chat activity data available"],
+              datasets: [{
+                label: "Количество сообщений",
+                data: [0]
+              }]
+            }
+          };
+        }
+      }
+
+      return { success: true, data };
+    } catch (error) {
+      console.error('Error fetching chat activity:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch chat activity' };
+    }
+  },
+
+  // Get user activity data
+  getUserActivity: async (): Promise<ApiResponse<ChartData>> => {
+    try {
+      const response = await fetch(`${API_URL}/api/analytics/user-activity`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch user activity');
+      }
+
+      const data = await response.json();
+
+      // Debug the data received from the API
+      console.log("Raw user activity data from API:", data);
+
+      // Check if the data structure is as expected
+      if (!data.labels || !data.datasets) {
+        console.error("Invalid user activity data structure", data);
+
+        // If you have no data yet, create a default/empty structure
+        if ((!data.labels || data.labels.length === 0) && (!data.datasets || !data.datasets.length)) {
+          return {
+            success: true,
+            data: {
+              labels: ["No user activity data available"],
+              datasets: [{
+                label: "Количество сообщений",
+                data: [0]
+              }]
+            }
+          };
+        }
+      }
+
+      return { success: true, data };
+    } catch (error) {
+      console.error('Error fetching user activity:', error);
+      return { success: false, error: error instanceof Error ? error.message : 'Failed to fetch user activity' };
     }
   },
 };

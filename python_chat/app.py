@@ -54,7 +54,7 @@ def create_app(test_config=None) -> Flask:
             app.logger.error(f"Error loading user {user_id}: {e}")
             return None
 
-    from python_chat.routes import admin, api_auth, api_test, auth, chats, index, profile
+    from python_chat.routes import admin, api_auth, api_profile, api_test, auth, chats, index, profile
 
     app.register_blueprint(auth.bp)
     app.register_blueprint(index.bp)
@@ -63,6 +63,7 @@ def create_app(test_config=None) -> Flask:
     app.register_blueprint(admin.bp)
     app.register_blueprint(api_auth.bp)
     app.register_blueprint(api_test.bp)
+    app.register_blueprint(api_profile.bp)
 
     # Initialize Socket.IO event handlers
     with app.app_context():

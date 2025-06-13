@@ -1,0 +1,370 @@
+.admin-page-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    width: 100%;
+}
+
+.admin-page-wrapper .app-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 2rem;
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+    height: 60px;
+}
+
+.admin-page-wrapper .app-header h1 {
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    margin: 0;
+    font-weight: 600;
+}
+
+.admin-page-wrapper .user-info {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.admin-page-wrapper .nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-primary);
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    transition: all 0.2s;
+}
+
+.admin-page-wrapper .nav-link:hover {
+    background: rgba(0, 0, 0, 0.05);
+}
+
+.admin-page-wrapper .nav-link.active {
+    background: rgba(102, 126, 234, 0.15);
+    color: var(--primary-color);
+}
+
+.admin-container {
+    max-width: 90%;
+    margin: 2rem auto;
+    background: var(--bg-glass);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-xl);
+    padding: 2rem 2.5rem;
+    font-family: 'Inter', 'Poppins', sans-serif;
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(102, 126, 234, 0.10);
+    min-height: 70vh;
+    animation: slideInUp 0.6s ease-out;
+}
+
+.admin-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 2rem;
+}
+
+.admin-header svg {
+    color: var(--primary-color);
+    font-size: 1.8rem;
+    margin-right: 1rem;
+}
+
+.admin-header h1 {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.section-title {
+    display: flex;
+    align-items: center;
+    margin-top: 2rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+    padding-left: 0.5rem;
+}
+
+.section-title::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4px;
+    background: var(--primary-color);
+    border-radius: 4px;
+}
+
+.section-title svg {
+    color: var(--primary-color);
+    margin-right: 0.8rem;
+    font-size: 1.2rem;
+}
+
+.section-title h2 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.analytics-overview {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.analytics-card {
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 12px;
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.analytics-card:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
+}
+
+.analytics-card .card-icon {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+    color: var(--primary-color);
+}
+
+.analytics-card h3 {
+    margin: 0 0 1rem;
+    font-size: 1rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+    text-transform: uppercase;
+}
+
+.analytics-card .analytics-value {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.charts-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.chart-container {
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: var(--shadow-md);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    position: relative;
+    height: 400px;
+    display: flex;
+    flex-direction: column;
+}
+
+.chart-container h2 {
+    margin-top: 0;
+    font-size: 1.2rem;
+    color: var(--text-primary);
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+}
+
+.chart-container canvas {
+    width: 100% !important;
+    height: calc(100% - 40px) !important;
+    /* Subtract the height of the title */
+    max-height: 350px;
+}
+
+.chart-wrapper {
+    width: 100%;
+    height: 100%;
+    min-height: 300px;
+    position: relative;
+    flex-grow: 1;
+}
+
+.chart-wrapper canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.admin-footer {
+    margin-top: 3rem;
+    display: flex;
+    justify-content: flex-end;
+}
+
+.btn {
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn svg {
+    margin-right: 0.4rem;
+}
+
+.btn-primary {
+    background: var(--primary-color);
+    color: white;
+    border: 1px solid var(--primary-color);
+}
+
+.btn-primary:hover {
+    background: #5a70d9;
+}
+
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.3);
+    color: var(--text-primary);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem;
+    height: 50vh;
+}
+
+.spinner {
+    border: 4px solid rgba(102, 126, 234, 0.1);
+    border-left-color: var(--primary-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.error {
+    color: var(--error-color);
+    font-weight: 600;
+    text-align: center;
+    padding: 2rem 0;
+}
+
+@keyframes slideInUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+/* Chart container styling */
+.loading-indicator,
+.error-message,
+.no-data-message {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    text-align: center;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.loading-indicator {
+    background-color: rgba(240, 240, 240, 0.5);
+    color: var(--text-secondary);
+}
+
+.error-message {
+    background-color: rgba(255, 235, 235, 0.5);
+    color: #d32f2f;
+}
+
+.no-data-message {
+    background-color: rgba(240, 240, 240, 0.5);
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .admin-container {
+        padding: 1.5rem;
+        max-width: 100%;
+        margin: 1rem;
+    }
+
+    .analytics-card {
+        padding: 1rem;
+    }
+
+    .analytics-card .analytics-value {
+        font-size: 1.5rem;
+    }
+
+    .charts-section {
+        grid-template-columns: 1fr;
+    }
+
+    .chart-container {
+        padding: 1rem;
+    }
+
+    canvas {
+        height: 250px !important;
+    }
+}

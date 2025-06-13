@@ -142,6 +142,6 @@ def logout():
 def status():
     """Check if user is authenticated and return user info"""
     if current_user.is_authenticated:
-        return jsonify({"isAuthenticated": True, "username": current_user.username, "userId": current_user.id})
+        return jsonify({"isAuthenticated": True, "username": current_user.username, "userId": current_user.id, "is_admin": current_user.is_admin})
     else:
         return jsonify({"isAuthenticated": False}), 401
